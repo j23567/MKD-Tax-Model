@@ -63,24 +63,12 @@ path1<-"C:/Users/wb591157/OneDrive - WBG/Documents/Models/MKD-Tax-Model"
         setwd(path2)
         getwd()
         
-                          dt<-read_csv("full_universe.csv")%>%data.table()
-                          dt$Year<-2021
-                          
-                          
-                          df_nace<-read_csv("final_nace_epdd_mpin.csv")%>%
-                            select(-c("...1"))
-                            
-                        
-                          dt<-left_join(dt,df_nace,by=c("id_n"="id"))
-                          
-                          dt$nace_section<-as.character(dt$nace_section)
-                          
-                          rm(df_nace)
+                          dt<-read_csv("full_universe_final.csv")%>%data.table()
                           
                           MACRO_FISCAL_INDICATORS<-read_excel("macro_indicators.xlsx")
                           
                           # 2.Growth Factors & Scenario Mapping
-                          #growth_factors<-read.csv("~/Models/Tax-Modeling-Toolkit/Data/PIT/growfactors_pit_macedonia_new.csv")%>%data.table()
+                          
                           growth_factors<-read.csv("growfactors_pit_macedonia_new.csv")%>%data.table()
                           
                           
