@@ -28,8 +28,12 @@
                                                     # Define the columns to keep
                                                     #columns_to_keep <- c("id_n", "g_total_gross", "pitax", "tti_c_c","tti_w_I")
                                                     columns_to_keep <- c("id_n",  "weight",
-                                                                         "g_total_gross", "g_total_net_l",
-                                                                         "g_total_gross", "pitax", "tax_base_other","tti_c_a","tti_c_g")
+                                                                         "g_total_gross", 
+                                                                         #"g_total_net_l",
+                                                                         "total_net",
+                                                                         "g_total_gross", 
+                                                                         "pitax", 
+                                                                         "tax_base_other","tti_c_a","tti_c_g")
                                                     
                                                     # Check if all columns exist in the data frame
                                                     missing_columns <- setdiff(columns_to_keep, colnames(PIT_BU_simulation_year_df))
@@ -140,25 +144,25 @@
               
               # 8. Function to calculate the Kakwani Index ------------------------------------------
                         calculate_kakwani_index_fun <- function(pitax, g_total_gross, w) {
-                          order_index <- order(g_total_gross)
-                          pitax <- pitax[order_index]
-                          g_total_gross <- g_total_gross[order_index]
-                          w <- w[order_index]
-                          
-                          tax <- g_total_gross - pitax
-                          cum_w <- cumsum(w) / sum(w)
-                          cum_gross <- cumsum(g_total_gross * w) / sum(g_total_gross * w)
-                          cum_tax <- cumsum(tax * w) / sum(tax * w)
-                          
-                          area_lx <- sum(cum_gross[-1] * diff(cum_w))
-                          area_lt <- sum(cum_tax[-1] * diff(cum_w))
-                          
-                          gini_gx <- 1 - 2 * area_lx
-                          concentration_ct <- 1 - 2 * area_lt
-                          
-                          kakwani_index <- concentration_ct - gini_gx
-                          return(kakwani_index)
-                        }
+                                                order_index <- order(g_total_gross)
+                                                pitax <- pitax[order_index]
+                                                g_total_gross <- g_total_gross[order_index]
+                                                w <- w[order_index]
+                                                
+                                                tax <- g_total_gross - pitax
+                                                cum_w <- cumsum(w) / sum(w)
+                                                cum_gross <- cumsum(g_total_gross * w) / sum(g_total_gross * w)
+                                                cum_tax <- cumsum(tax * w) / sum(tax * w)
+                                                
+                                                area_lx <- sum(cum_gross[-1] * diff(cum_w))
+                                                area_lt <- sum(cum_tax[-1] * diff(cum_w))
+                                                
+                                                gini_gx <- 1 - 2 * area_lx
+                                                concentration_ct <- 1 - 2 * area_lt
+                                                
+                                                kakwani_index <- concentration_ct - gini_gx
+                                                return(kakwani_index)
+                                              }
                         
               
               # 9. Function to calculate the Average tax rate ------------------------------------
@@ -340,6 +344,43 @@
                                 Indicator != "Average Tax Rate") %>% # Calculation of average tax rate is need to be double check due to strange results
                 dplyr::mutate(`Percentage Difference (%)` = round((`Simulation` - `Business as usual`) / `Business as usual` * 100, 2))
               
+    # TEST 
               
+              
+              # Compute the Gini coefficient using the ineq package
+             #library(ineq)
+              
+              # Bu
+              
+              gini_income <- round(ineq(PIT_BU_simulation_year_df$g_total_gross, type = "Gini", na.rm = TRUE), 4)
+              gx <- data.frame(Gini = gini_income)
+              
+              # Compute the concentration coefficient (using your custom function)
+              ctax <- round(data.frame(calcSConc(PIT_BU_simulation_year_df$pitax, PIT_SIM_simulation_year_df$g_total_gross)[[1]]), 4)
+              # Assuming dt_1 represents the tax concentration coefficient
+              dt_1 <- ctax
+              
+              # Calculate the Kakwani index
+              kakwani_index_BU <- round(dt_1[1, 1] - gx[1, 1], 4)
+             
+              
+              
+              
+              
+              # Simulation
+              
+              gini_income <- round(ineq(PIT_SIM_simulation_year_df$g_total_gross, type = "Gini", na.rm = TRUE), 4)
+              gx <- data.frame(Gini = gini_income)
+              
+              # Compute the concentration coefficient (using your custom function)
+              ctax <- round(data.frame(calcSConc(PIT_SIM_simulation_year_df$pitax, PIT_SIM_simulation_year_df$g_total_gross)[[1]]), 4)
+              # Assuming dt_1 represents the tax concentration coefficient
+              dt_1 <- ctax
+              
+              # Calculate the Kakwani index
+              kakwani_index_SIM <- round(dt_1[1, 1] - gx[1, 1], 4)
+              
+              
+    
               
     

@@ -182,98 +182,199 @@
                       #                               filter(year==simulation_year)
                     
                         
-# II.PIT Distribution Table Income Breaks -----------------------------------------------------------
-    # 1.BU ----------------------------------------------------------------------
+# # II.PIT Distribution Table Income Breaks ( OLD) -----------------------------------------------------------
+#     # 1.BU ----------------------------------------------------------------------
+#             
+#                       # Define the breakpoints and labels
+#                       breaks <- c(-Inf, 0, 1, 0.5e6, 1e6, 1.5e6, 2e6, 3e6, 4e6, 5e6, 10e6, Inf)
+#                       labels <- c("<0", "0", "0-0.5m", "0.5-1m", "1-1.5m", "1.5-2m", "2-3m", "3-4m", "4-5m", "5-10m", ">10m")
+#                       
+#         # Apply the transformations across all scenarios in PIT_BU_list
+#                       combined_dt_bins_fun <- rbindlist(lapply(names(PIT_BU_list), function(scenario) {
+#                         # Extract the data frame for each scenario
+#                         data <- PIT_BU_list[[scenario]] %>%
+#                           select(id_n, weight, g_total_gross, pitax) %>%
+#                           mutate(
+#                             weight_g = weight * g_total_gross,
+#                             bin_group = cut(g_total_gross, breaks = breaks, labels = labels, right = FALSE)
+#                           ) %>%
+#                           # Add the scenario identifier to the data frame
+#                           mutate(scenario = scenario)
+#                         
+#                         # Convert to data.table for efficient operations
+#                         as.data.table(data)
+#                       }))
+#                       
+#                       # Calculate the sum of pitax for each bin_group and scenario
+#                       pit_result_bins <- combined_dt_bins_fun[, .(sum_calc_pitax = sum(pitax)), by = .(bin_group, scenario)]
+#                       
+#                       # Calculate the sum for the "ALL" category for each scenario
+#                       all_scenarios <- combined_dt_bins_fun[, .(bin_group = "ALL", sum_calc_pitax = sum(pitax)), by = scenario]
+#                       
+#                       # Combine the results with the "ALL" category
+#                       pit_result_bins_bu <- rbind(pit_result_bins, all_scenarios, fill = TRUE)
+#                       
+#                       # Add the year column using the forecast_horizon vector
+#                       pit_result_bins_bu[, year := forecast_horizon[match(scenario, scenarios)]]
+#                       
+#           
+#     # Chart -------------------------------------------------------------------
+#     
+#             pit_result_bins_bu_sub <- pit_result_bins_bu %>%
+#               filter(year == simulation_year) %>%
+#               filter(bin_group != "ALL" & bin_group != "0")
+#         
+#     # 2.SIM -------------------------------------------------------------------
+#             
+#                       combined_dt_bins_fun <- rbindlist(lapply(names(PIT_SIM_list), function(scenario) {
+#                         # Extract the data frame for each scenario
+#                         data <- PIT_SIM_list[[scenario]] %>%
+#                           select(id_n, weight, g_total_gross, pitax) %>%
+#                           mutate(
+#                             weight_g = weight * g_total_gross,
+#                             bin_group = cut(g_total_gross, breaks = breaks, labels = labels, right = FALSE)
+#                           ) %>%
+#                           # Add the scenario identifier to the data frame
+#                           mutate(scenario = scenario)
+#                         
+#                         # Convert to data.table for efficient operations
+#                         as.data.table(data)
+#                       }))
+#                       
+#                       # Calculate the sum of pitax for each bin_group and scenario
+#                       pit_result_bins <- combined_dt_bins_fun[, .(sum_calc_pitax = sum(pitax)), by = .(bin_group, scenario)]
+#                       
+#                       # Calculate the sum for the "ALL" category for each scenario
+#                       all_scenarios <- combined_dt_bins_fun[, .(bin_group = "ALL", sum_calc_pitax = sum(pitax)), by = scenario]
+#                       
+#                       # Combine the results with the "ALL" category
+#                       pit_result_bins_sim <- rbind(pit_result_bins, all_scenarios, fill = TRUE)
+#                       
+#                       # Add the year column using the forecast_horizon vector
+#                       pit_result_bins_sim[, year := forecast_horizon[match(scenario, scenarios)]]
+#                       
+#         
+#     
+#     # Chart -------------------------------------------------------------------
+#     
+#             pit_result_bins_sim_sub <- pit_result_bins_sim %>%
+#               filter(year == simulation_year) %>%
+#               filter(bin_group != "ALL" & bin_group != "0")%>%
+#               select(-c(scenario,year))
+#             
+#             
+#             # Calculate the sum of the 'sum_calc_pitax' column
+#             total_pitax <- sum(pit_result_bins_sim_sub$sum_calc_pitax)
+#             pit_result_bins_sim_sub[, percentage_structure := (sum_calc_pitax / total_pitax) * 100]
+#             pit_result_bins_sim_sub[, sum_calc_pitax := round(sum_calc_pitax / 1e06, 1)]
+#             
+#             pit_result_bins_sim_sub$percentage_structure<-round(pit_result_bins_sim_sub$percentage_structure,1)
+
+# Testing new -------------------------------------------------------------
+
             
-                      # Define the breakpoints and labels
-                      breaks <- c(-Inf, 0, 1, 0.5e6, 1e6, 1.5e6, 2e6, 3e6, 4e6, 5e6, 10e6, Inf)
-                      labels <- c("<0", "0", "0-0.5m", "0.5-1m", "1-1.5m", "1.5-2m", "2-3m", "3-4m", "4-5m", "5-10m", ">10m")
-                      
-        # Apply the transformations across all scenarios in PIT_BU_list
-                      combined_dt_bins_fun <- rbindlist(lapply(names(PIT_BU_list), function(scenario) {
-                        # Extract the data frame for each scenario
-                        data <- PIT_BU_list[[scenario]] %>%
-                          select(id_n, weight, g_total_gross, pitax) %>%
-                          mutate(
-                            weight_g = weight * g_total_gross,
-                            bin_group = cut(g_total_gross, breaks = breaks, labels = labels, right = FALSE)
-                          ) %>%
-                          # Add the scenario identifier to the data frame
-                          mutate(scenario = scenario)
-                        
-                        # Convert to data.table for efficient operations
-                        as.data.table(data)
-                      }))
-                      
-                      # Calculate the sum of pitax for each bin_group and scenario
-                      pit_result_bins <- combined_dt_bins_fun[, .(sum_calc_pitax = sum(pitax)), by = .(bin_group, scenario)]
-                      
-                      # Calculate the sum for the "ALL" category for each scenario
-                      all_scenarios <- combined_dt_bins_fun[, .(bin_group = "ALL", sum_calc_pitax = sum(pitax)), by = scenario]
-                      
-                      # Combine the results with the "ALL" category
-                      pit_result_bins_bu <- rbind(pit_result_bins, all_scenarios, fill = TRUE)
-                      
-                      # Add the year column using the forecast_horizon vector
-                      pit_result_bins_bu[, year := forecast_horizon[match(scenario, scenarios)]]
-                      
-          
-    # Chart -------------------------------------------------------------------
-    
+            # II.PIT Distribution Table Income Breaks ( NEW-TEST)-----------------------------------------------------------
+            # 1.BU ----------------------------------------------------------------------
+            
+            # Define the breakpoints and labels
+            
+            
+            breaks <- c( -Inf, 0,1e-09,500000.0,1000000.0,1500000.0,2000000.0,3000000.0,4000000.0,5000000.0,10000000.0,9e+99)
+            labels <- c("<0","=0","0-0.5 m","0.5-1m","1-1.5m","1.5-2m","2-3m","3-4m","4-5m","5-10m",">10m")
+            
+            
+            # Apply the transformations across all scenarios in pit_BU_list
+            combined_dt_bins_fun <- rbindlist(lapply(names(PIT_BU_list), function(scenario) {
+              # Extract the data frame for each scenario
+              data <- PIT_BU_list[[scenario]] %>%
+                select(id_n, weight, g_total_gross, pitax) %>%
+                mutate(
+                  weight_g = weight * g_total_gross,
+                  bin_group = cut(g_total_gross, breaks = breaks, labels = labels, right = FALSE)
+                ) %>%
+                # Add the scenario identifier to the data frame
+                mutate(scenario = scenario)
+              
+              # Convert to data.table for efficient operations
+              as.data.table(data)
+            }))
+            
+            # Calculate the sum of calc_pit for each bin_group and scenario
+            pit_result_bins <- combined_dt_bins_fun[, .(sum_calc_pitax = sum(pitax)), by = .(bin_group, scenario)]
+            
+            # Calculate the sum for the "ALL" category for each scenario
+            all_scenarios <- combined_dt_bins_fun[, .(bin_group = "ALL", sum_calc_pitax = sum(pitax)), by = scenario]
+            
+            # Combine the results with the "ALL" category
+            pit_result_bins_bu <- rbind(pit_result_bins, all_scenarios, fill = TRUE)
+            
+            # Add the year column using the forecast_horizon vector
+            pit_result_bins_bu[, year := forecast_horizon[match(scenario, scenarios)]]
+            
+            
+            # Chart -------------------------------------------------------------------
+            
             pit_result_bins_bu_sub <- pit_result_bins_bu %>%
-              filter(year == simulation_year) %>%
+              filter(year == SimulationYear) %>%
               filter(bin_group != "ALL" & bin_group != "0")
-        
-    # 2.SIM -------------------------------------------------------------------
             
-                      combined_dt_bins_fun <- rbindlist(lapply(names(PIT_SIM_list), function(scenario) {
-                        # Extract the data frame for each scenario
-                        data <- PIT_SIM_list[[scenario]] %>%
-                          select(id_n, weight, g_total_gross, pitax) %>%
-                          mutate(
-                            weight_g = weight * g_total_gross,
-                            bin_group = cut(g_total_gross, breaks = breaks, labels = labels, right = FALSE)
-                          ) %>%
-                          # Add the scenario identifier to the data frame
-                          mutate(scenario = scenario)
-                        
-                        # Convert to data.table for efficient operations
-                        as.data.table(data)
-                      }))
-                      
-                      # Calculate the sum of pitax for each bin_group and scenario
-                      pit_result_bins <- combined_dt_bins_fun[, .(sum_calc_pitax = sum(pitax)), by = .(bin_group, scenario)]
-                      
-                      # Calculate the sum for the "ALL" category for each scenario
-                      all_scenarios <- combined_dt_bins_fun[, .(bin_group = "ALL", sum_calc_pitax = sum(pitax)), by = scenario]
-                      
-                      # Combine the results with the "ALL" category
-                      pit_result_bins_sim <- rbind(pit_result_bins, all_scenarios, fill = TRUE)
-                      
-                      # Add the year column using the forecast_horizon vector
-                      pit_result_bins_sim[, year := forecast_horizon[match(scenario, scenarios)]]
-                      
-        
-    
-    # Chart -------------------------------------------------------------------
-    
+            # 2.SIM -------------------------------------------------------------------
+            
+            combined_dt_bins_fun <- rbindlist(lapply(names(PIT_SIM_list), function(scenario) {
+              # Extract the data frame for each scenario
+              data <- PIT_SIM_list[[scenario]] %>%
+                select(id_n, weight, g_total_gross, pitax) %>%
+                mutate(
+                  weight_g = weight * g_total_gross,
+                  bin_group = cut(g_total_gross, breaks = breaks, labels = labels, right = FALSE)
+                ) %>%
+                # Add the scenario identifier to the data frame
+                mutate(scenario = scenario)
+              
+              # Convert to data.table for efficient operations
+              as.data.table(data)
+            }))
+            
+            # Calculate the sum of pitax for each bin_group and scenario
+            pit_result_bins <- combined_dt_bins_fun[, .(sum_calc_pitax = sum(pitax)), by = .(bin_group, scenario)]
+            
+            # Calculate the sum for the "ALL" category for each scenario
+            all_scenarios <- combined_dt_bins_fun[, .(bin_group = "ALL", sum_calc_pitax = sum(pitax)), by = scenario]
+            
+            # Combine the results with the "ALL" category
+            pit_result_bins_sim <- rbind(pit_result_bins, all_scenarios, fill = TRUE)
+            
+            # Add the year column using the forecast_horizon vector
+            pit_result_bins_sim[, year := forecast_horizon[match(scenario, scenarios)]]
+            
+            
+            
+            # Chart -------------------------------------------------------------------
+            
             pit_result_bins_sim_sub <- pit_result_bins_sim %>%
-              filter(year == simulation_year) %>%
+              filter(year == SimulationYear) %>%
               filter(bin_group != "ALL" & bin_group != "0")%>%
               select(-c(scenario,year))
             
             
-            # Calculate the sum of the 'sum_calc_pitax' column
-            total_pitax <- sum(pit_result_bins_sim_sub$sum_calc_pitax)
-            pit_result_bins_sim_sub[, percentage_structure := (sum_calc_pitax / total_pitax) * 100]
-            pit_result_bins_sim_sub[, sum_calc_pitax := round(sum_calc_pitax / 1e06, 1)]
+            # Reorder the bin_group factor
+            pit_result_bins_sim_sub[, bin_group := factor(bin_group, levels =  c("<0","=0","0-0.5 m","0.5-1m","1-1.5m","1.5-2m","2-3m","3-4m","4-5m","5-10m",">10m"))]
             
-            pit_result_bins_sim_sub$percentage_structure<-round(pit_result_bins_sim_sub$percentage_structure,1)
+            # Order the data.table by the new factor levels
+            setorder(pit_result_bins_sim_sub, bin_group)
+            # test ovde
+            pit_result_bins_sim_sub$sum_calc_pitax<-pit_result_bins_sim_sub$sum_calc_pitax/1e06
+            pit_result_bins_sim_sub$sum_calc_pitax<-round(pit_result_bins_sim_sub$sum_calc_pitax,1)
+            
+            
+            
             
          
             
     # Removing of objects        
             
-    rm(PIT_BU_list,PIT_SIM_list,selected_gross_desc_tbl,selected_gross_nace_tbl)
+    #rm(PIT_BU_list,PIT_SIM_list,selected_gross_desc_tbl,selected_gross_nace_tbl)
+    gc(TRUE)
            
             
+    

@@ -1,7 +1,7 @@
 " Strucuture of Gross Income "
 
 # Define custom colors
-custom_colors <- c('#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf')
+#custom_colors <- c('#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf')
 # Infoboxes colors: # red, yellow, aqua, blue, light-blue, green, navy, teal, olive, lime, orange, fuchsia, purple, maroon, black.
 
 # I.Function for Dashboard ------------------------------------------------------------------
@@ -46,7 +46,8 @@ Structure_GrossIncome_Charts <- function(te_agg,te_labor_capital,nace_pit_summar
 
 # II. Chart Type of Income --------------------------------
 
-                    color_mapping <- c('#1f77b4', "cyan", "brown", "purple", "orange", "red", "chartreuse", "darkturquoise", "forestgreen")
+                    #color_mapping <- c('#1f77b4', "cyan", "brown", "purple", "orange", "red", "chartreuse", "darkturquoise", "forestgreen")
+                    color_mapping <- c('#1f77b4', "cyan", "brown", "forestgreen","purple", "orange",  "chartreuse", "darkturquoise","red" )
                     
                     # Create a stacked bar chart with Plotly and custom colors
                     labor_capital_type_plt <- plot_ly(labor_capital_type, 

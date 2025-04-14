@@ -16,14 +16,9 @@
                                               "g_CopyrightIncomeSuccessor_l",
                                               "g_CopyrightIncomeTranslationsLectures_l",
                                               "g_WorkIncome_l",
-                                              "g_CapitalGains_c",
-                                              "g_CapitalGainsSellsRealEstateFiveYear_c",
-                                              "g_CapitalGainsSaleShareCapital_c",
-                                              "g_CapitalGainsRealEstateThreeYear_c",
-                                              "g_CapitalGainssaleOtherMovableAssets_c",
+                                              "g_GamesofChanceBettingShop_c",
                                               "g_CapitalIncome_c",
                                               "g_GamesofChanceSpecific_c",
-                                              "g_GamesofChanceBettingHouse_c",
                                               "g_GamesofChanceGeneral_c",
                                               "g_Lease_c",
                                               "g_LeaseBusiness_c",
@@ -53,35 +48,35 @@
                                   #                  capital = sum(total_gross_c, na.rm = TRUE))
                     dplyr::summarise(# Calculate labor income
                       labor = sum(g_Wages_l + 
-                        g_WagesDiplomaticConsular_l + 
-                        g_TemporaryContracts_l + 
-                        g_AgriculturalProductsOwn_l + 
-                        g_AgriculturalProducts_l + 
-                        g_IndependentActivity_l + 
-                        g_CopyrightIncomeArtisticPhotography_l + 
-                        g_CopyrightIncomeMusicBallet_l + 
-                        g_CopyrightIncomePaintingsSculptural_l + 
-                        g_CopyrightIncomeSuccessor_l + 
-                        g_CopyrightIncomeTranslationsLectures_l + 
-                        g_WorkIncome_l),
+                                    g_WagesDiplomaticConsular_l + 
+                                    g_TemporaryContracts_l + 
+                                    g_AgriculturalProductsOwn_l + 
+                                    g_AgriculturalProducts_l + 
+                                    g_IndependentActivity_l + 
+                                    g_CopyrightIncomeArtisticPhotography_l + 
+                                    g_CopyrightIncomeMusicBallet_l + 
+                                    g_CopyrightIncomePaintingsSculptural_l + 
+                                    g_CopyrightIncomeSuccessor_l + 
+                                    g_CopyrightIncomeTranslationsLectures_l + 
+                                    g_WorkIncome_l),
                       
                       # Calculate capital income
-                      capital = sum(g_CapitalGains_c + 
-                        g_CapitalGainsSellsRealEstateFiveYear_c + 
-                        g_CapitalGainsSaleShareCapital_c + 
-                        g_CapitalGainsRealEstateThreeYear_c + 
-                        g_CapitalGainssaleOtherMovableAssets_c + 
-                        g_CapitalIncome_c + 
-                        g_Lease_c + 
-                        g_LeaseBusiness_c + 
-                        g_Sublease_c + 
-                        g_IndustrialPropertyRights_c + 
-                        g_IndustrialPropertyRightsSuccessor_c + 
-                        g_Insurance_c + 
-                        g_Interests_c + 
-                        g_SolidWaste_c + 
-                        g_OtherIncome_c)
-                    )
+                      capital = sum(
+                                      g_CapitalIncome_c + 
+                                      g_Lease_c + 
+                                      g_LeaseBusiness_c + 
+                                      g_Sublease_c + 
+                                      g_IndustrialPropertyRights_c + 
+                                      g_IndustrialPropertyRightsSuccessor_c + 
+                                      g_Insurance_c + 
+                                      g_Interests_c + 
+                                      g_SolidWaste_c + 
+                                      g_OtherIncome_c+
+                                      g_GamesofChanceGeneral_c+
+                                      g_GamesofChanceBettingShop_c+
+                                      g_GamesofChanceGeneral_c
+                                      )
+                                  )
                     
               
                   # Reshape the data into long format
@@ -93,15 +88,14 @@
                   
                   
 
-# II. Type of Income ---------------------------------------------------------------------
+# II. Type of Income Aggregation of data ---------------------------------------------------------------------
 
 types_labor_capital_tbl<-selected_gross_desc_tbl%>%
-  dplyr::mutate(
-                        labor_wages=g_Wages_l + g_WagesDiplomaticConsular_l,
-                        labor_temporary_contract=g_TemporaryContracts_l,
-                        labor_agricultural=g_AgriculturalProductsOwn_l + g_AgriculturalProducts_l,
-
-                        labor_other= g_IndependentActivity_l
+                      dplyr::mutate(
+                                    labor_wages=g_Wages_l + g_WagesDiplomaticConsular_l,
+                                    labor_temporary_contract=g_TemporaryContracts_l,
+                                    labor_agricultural=g_AgriculturalProductsOwn_l + g_AgriculturalProducts_l,
+                                    labor_other= g_IndependentActivity_l
                                                                         + g_CopyrightIncomeArtisticPhotography_l
                                                                         + g_CopyrightIncomeMusicBallet_l
                                                                         + g_CopyrightIncomePaintingsSculptural_l
@@ -110,31 +104,28 @@ types_labor_capital_tbl<-selected_gross_desc_tbl%>%
                                                                         + g_CopyrightIncomeTranslationsLectures_l
                                                                         + g_WorkIncome_l,
 
-                          capital_dividends_profits	=  g_CapitalGains_c
-                                                        + g_CapitalGainsSellsRealEstateFiveYear_c
-                                                        + g_CapitalGainsSaleShareCapital_c
-                                                        + g_CapitalGainsRealEstateThreeYear_c
-                                                        + g_CapitalGainssaleOtherMovableAssets_c
-                                                        + g_CapitalIncome_c,
+                        
+                        capital_games_of_chance	= g_GamesofChanceSpecific_c+
+                                                    + g_GamesofChanceBettingShop_c
+                                                    + g_GamesofChanceGeneral_c,
 
-                          capital_games_of_chance	= g_Lease_c
+                        capital_property_income	=  g_Lease_c
                                                     + g_LeaseBusiness_c
                                                     + g_Sublease_c,
 
-                          capital_property_income	=  g_Lease_c
-                                                    + g_LeaseBusiness_c
-                                                    + g_Sublease_c,
-
-                          capital_other= g_IndustrialPropertyRights_c
+                        capital_other= g_IndustrialPropertyRights_c
                                           + g_IndustrialPropertyRightsSuccessor_c
                                           + g_Insurance_c
                                           + g_Interests_c
                                           + g_SolidWaste_c
                                           + g_OtherIncome_c
+                                          +g_CapitalIncome_c
 
                         )%>%
                         select(decile_group,
-                               labor_wages,labor_temporary_contract,labor_agricultural,labor_other,capital_dividends_profits,capital_games_of_chance,capital_property_income,capital_other)
+                               labor_wages,labor_temporary_contract,labor_agricultural,labor_other,
+                               #capital_dividends_profits,
+                               capital_games_of_chance,capital_property_income,capital_other)
                       
                       
                       
@@ -144,7 +135,7 @@ types_labor_capital_tbl<-selected_gross_desc_tbl%>%
                                                labor_temporary_contract = sum(labor_temporary_contract, na.rm = TRUE),
                                                labor_agricultural = sum(labor_agricultural, na.rm = TRUE),
                                                labor_other = sum(labor_other, na.rm = TRUE),
-                                               capital_dividends_profits = sum(capital_dividends_profits, na.rm = TRUE),
+                                               #capital_dividends_profits = sum(capital_dividends_profits, na.rm = TRUE),
                                                capital_games_of_chance = sum(capital_games_of_chance, na.rm = TRUE),
                                                capital_property_income = sum(capital_property_income, na.rm = TRUE),
                                                capital_other = sum(capital_other, na.rm = TRUE)
@@ -153,10 +144,14 @@ types_labor_capital_tbl<-selected_gross_desc_tbl%>%
 
       # Reshape the data into long format
       labor_capital_type <- labor_capital_type %>%
-        gather(key = "gross_income", value = "value", labor_wages,labor_temporary_contract,labor_agricultural,labor_other,capital_dividends_profits,capital_games_of_chance,capital_property_income,capital_other)
+        gather(key = "gross_income", value = "value", labor_wages,labor_temporary_contract,labor_agricultural,labor_other,
+               #capital_dividends_profits,
+               capital_games_of_chance,capital_property_income,capital_other)
       
       # Reverse the order of the factors for 'gross_income'
-      labor_capital_type$gross_income <- factor(labor_capital_type$gross_income, levels = c("labor_wages","labor_temporary_contract","labor_agricultural","labor_other","capital_dividends_profits","capital_games_of_chance","capital_property_income","capital_other"))
+      labor_capital_type$gross_income <- factor(labor_capital_type$gross_income, levels = c("labor_wages","labor_temporary_contract","labor_agricultural","labor_other",
+                                                                                            #"capital_dividends_profits",
+                                                                                            "capital_games_of_chance","capital_property_income","capital_other"))
 
 
 # III. Treemap GROSS INCOME --------------------------------------------------------------------
@@ -168,7 +163,7 @@ long_labor_capital_type <- types_labor_capital_tbl %>%
                    labor_temporary_contract = sum(labor_temporary_contract, na.rm = TRUE),
                    labor_agricultural = sum(labor_agricultural, na.rm = TRUE),
                    labor_other = sum(labor_other, na.rm = TRUE),
-                   capital_dividends_profits = sum(capital_dividends_profits, na.rm = TRUE),
+                   #capital_dividends_profits = sum(capital_dividends_profits, na.rm = TRUE),
                    capital_games_of_chance = sum(capital_games_of_chance, na.rm = TRUE),
                    capital_property_income = sum(capital_property_income, na.rm = TRUE),
                    capital_other = sum(capital_other, na.rm = TRUE)
@@ -194,7 +189,6 @@ long_labor_capital_type$TypeOfIncome <- "In billion LCU"
 
 columns_gross_nace_income <- c(
   "nace_section",
-  #"g_total_gross"          
   "g_total_gross"
 )
 

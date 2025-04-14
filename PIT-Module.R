@@ -26,8 +26,8 @@ library(Hmisc)
 library(openxlsx)
 
 # Define custom colors
-gc(TRUE)
-options(future.globals.maxSize = 10 * 1024^3)
+#gc(TRUE)
+#options(future.globals.maxSize = 10 * 1024^3)
 options(scipen = 999)
 
 
@@ -83,7 +83,7 @@ ui <- dashboardPage(
               fluidRow(
                 column(3,
                        sliderInput("SimulationYear", "Setting Simulation Year",
-                                   min = 2021, max = 2025, step = 1, value = 2021, width = "100%", round = 0, sep = ""),
+                                   min = 2021, max = 2026, step = 1, value = 2021, width = "100%", round = 0, sep = ""),
                        uiOutput("PolicyParameter"),
                        uiOutput("Descriptions_Select"),
                        uiOutput("LongNameSelect"),
@@ -93,26 +93,15 @@ ui <- dashboardPage(
                 column(3,
                        numericInput("default_Year", "Initial year ", value = 0, min = 0, step = 0.01),
                        numericInput("default_Value", "Value", value = 0, min = 0, step = 0.01)
-                       # radioButtons("tax_regime", "Select Tax Regime:",
-                       #              choices = c("Progressive" = "progressive", "Flat" = "flat")),
-                       # sliderInput("PersonalAllowance", "Personal Allowance",
-                       #            min = 0, max = 200000, step = 1, value = 101256, width = "98%", round = 0, sep = "")
+
                 ),
-                # column(3,
-                #        sliderInput("HighestBaseSSC_Employment", "Highest annual base for SSC (Employment)",
-                #                    min = 0, max = 50, step = 1, value = 16, width = "98%", round = 0, sep = ""),
-                #        sliderInput("HighestBaseSSC_SelfEmployment", "Highest annual base for SSC (Self-Employment)",
-                #                    min = 0, max = 50, step = 1, value = 12, width = "98%", round = 0, sep = ""),
-                #        sliderInput("SSC_rate", "SSC rates (%)",
-                #                    min = 0, max = 100, step = 1, value = 28, width = "98%", round = 2, sep = "")
-                #  ),
                 column(3,
                        switchInput("toggleSimulationRates", "Toggle Tax Expenditures", value = FALSE, onLabel = "On", offLabel = "Off"),
                        numericInput("sim_PIT_Rates", "Tax Benchmark", value = 0, min = 0, step = 1)
                 )
               ),
               #h4("Selected simulations parameters"),
-             div(h4("Selected simulations parameters"), style = "text-align: center;"),
+             div(h4("Selected Simulations Parameters"), style = "text-align: center;"),
               fluidRow(
                 column(12,
                        DTOutput("pit_simulation_parameters_updated"),
@@ -224,6 +213,9 @@ server <- function(input, output, session) {
     assign("tax_regime", input$tax_regime, envir = .GlobalEnv)
     cat("tax_regime updated:", input$tax_regime, "\n")
   })
+  
+  shinyjs::disable("default_Year")
+  #shinyjs::disable("default_Year")
   
   # Reactive data frame to store Excel data
   excelData <- reactiveVal(NULL)
@@ -402,16 +394,11 @@ server <- function(input, output, session) {
     ))
     
     future({
-      # NEW CODE
-
       source("Scripts/PIT/TaxCalculator.R")
       source("Scripts/PIT/Calc-Structure.R")
       source("Scripts/PIT/Calc-TaxExpenditures.R")
       source("Scripts/PIT/Calc-Distribution-Effects.R")
-      
-      
-      
-      
+      source("Scripts/PIT/Calc-Redistribution-Effects.R")
       list(
         pit_summary_df = get("pit_summary_df", envir = .GlobalEnv),
         te_summary_df = get("te_summary_df", envir = .GlobalEnv),
@@ -441,6 +428,7 @@ server <- function(input, output, session) {
     })
   })
   
+ 
   output$PIT_SUMMARY_TABLES <- renderDT({
     req(reactive_simulation_results())
     datatable(
@@ -449,13 +437,53 @@ server <- function(input, output, session) {
       extensions = 'Buttons',
       options = list(
         pageLength = 15,
-        dom = 'Blfrtip',
-        buttons = c('copy', 'csv', 'excel', 'print', 'pdf'),
+        dom = 'Blfrtip',  
+        buttons = list(
+          list(
+            extend = 'copyHtml5',
+            text = 'Copy',
+            filename = 'PIT_Projections',
+            exportOptions = list(
+              format = list(
+                body = JS("function(data, row, column, node) {
+                           return $('<div>').html(data).text();  // Strip HTML tags
+                         }")
+              )
+            )
+          ),
+          list(
+            extend = 'csvHtml5',
+            text = 'CSV',
+            filename = 'PIT_Projections',
+            exportOptions = list(
+              format = list(
+                body = JS("function(data, row, column, node) {
+                           return $('<div>').html(data).text();  // Strip HTML tags
+                         }")
+              )
+            )
+          ),
+          list(
+            extend = 'print',
+            text = 'Print',
+            exportOptions = list(
+              format = list(
+                body = JS("function(data, row, column, node) {
+                           return $('<div>').html(data).text();  // Strip HTML tags
+                         }")
+              )
+            )
+          )
+        ),
+        autoWidth = TRUE,
+        escape = FALSE,
         lengthMenu = list(c(10, 25, 50, -1), c(10, 25, 50, "All"))
-      )
+      ),
+      rownames = FALSE
     )
   })
   
+ 
   output$TE_TABLES <- renderDT({
     req(input$toggleSimulationRates)  # Ensure the table is only rendered when toggleSimulationRates is TRUE
     req(reactive_simulation_results())  # Ensure simulation results exist
@@ -470,15 +498,54 @@ server <- function(input, output, session) {
         paste("Tax Expenditures in LCU MIL,", min(forecast_horizon), "-", max(forecast_horizon)),
         class = "table-caption-bold"
       ),
-      extensions = 'Buttons',
       options = list(
         pageLength = 15,
-        dom = 'Blfrtip',
-        buttons = c('copy', 'csv', 'excel', 'print', 'pdf'),
+        dom = 'Blfrtip',  
+        buttons = list(
+          list(
+            extend = 'copyHtml5',
+            text = 'Copy',
+            filename = 'TE_Projections',
+            exportOptions = list(
+              format = list(
+                body = JS("function(data, row, column, node) {
+                           return $('<div>').html(data).text();  // Strip HTML tags
+                         }")
+              )
+            )
+          ),
+          list(
+            extend = 'csvHtml5',
+            text = 'CSV',
+            filename = 'TE_Projections',
+            exportOptions = list(
+              format = list(
+                body = JS("function(data, row, column, node) {
+                           return $('<div>').html(data).text();  // Strip HTML tags
+                         }")
+              )
+            )
+          ),
+          list(
+            extend = 'print',
+            text = 'Print',
+            exportOptions = list(
+              format = list(
+                body = JS("function(data, row, column, node) {
+                           return $('<div>').html(data).text();  // Strip HTML tags
+                         }")
+              )
+            )
+          )
+        ),
+        autoWidth = TRUE,
+        escape = FALSE,
         lengthMenu = list(c(10, 25, 50, -1), c(10, 25, 50, "All"))
-      )
+      ),
+      rownames = FALSE
     )
   })
+  
   
   output$RE_TABLES <- renderDT({
     req(reactive_simulation_results())
@@ -488,10 +555,49 @@ server <- function(input, output, session) {
       extensions = 'Buttons',
       options = list(
         pageLength = 15,
-        dom = 'Blfrtip',
-        buttons = c('copy', 'csv', 'excel', 'print', 'pdf'),
+        dom = 'Blfrtip',  
+        buttons = list(
+          list(
+            extend = 'copyHtml5',
+            text = 'Copy',
+            filename = 'RE_effects',
+            exportOptions = list(
+              format = list(
+                body = JS("function(data, row, column, node) {
+                           return $('<div>').html(data).text();  // Strip HTML tags
+                         }")
+              )
+            )
+          ),
+          list(
+            extend = 'csvHtml5',
+            text = 'CSV',
+            filename = 'RE_effects',
+            exportOptions = list(
+              format = list(
+                body = JS("function(data, row, column, node) {
+                           return $('<div>').html(data).text();  // Strip HTML tags
+                         }")
+              )
+            )
+          ),
+          list(
+            extend = 'print',
+            text = 'Print',
+            exportOptions = list(
+              format = list(
+                body = JS("function(data, row, column, node) {
+                           return $('<div>').html(data).text();  // Strip HTML tags
+                         }")
+              )
+            )
+          )
+        ),
+        autoWidth = TRUE,
+        escape = FALSE,
         lengthMenu = list(c(10, 25, 50, -1), c(10, 25, 50, "All"))
-      )
+      ),
+      rownames = FALSE
     )
   })
   
@@ -503,10 +609,49 @@ server <- function(input, output, session) {
       extensions = 'Buttons',
       options = list(
         pageLength = 15,
-        dom = 'Blfrtip',
-        buttons = c('copy', 'csv', 'excel', 'print', 'pdf'),
+        dom = 'Blfrtip',  
+        buttons = list(
+          list(
+            extend = 'copyHtml5',
+            text = 'Copy',
+            filename = 'DistTable',
+            exportOptions = list(
+              format = list(
+                body = JS("function(data, row, column, node) {
+                           return $('<div>').html(data).text();  // Strip HTML tags
+                         }")
+              )
+            )
+          ),
+          list(
+            extend = 'csvHtml5',
+            text = 'CSV',
+            filename = 'DistTable',
+            exportOptions = list(
+              format = list(
+                body = JS("function(data, row, column, node) {
+                           return $('<div>').html(data).text();  // Strip HTML tags
+                         }")
+              )
+            )
+          ),
+          list(
+            extend = 'print',
+            text = 'Print',
+            exportOptions = list(
+              format = list(
+                body = JS("function(data, row, column, node) {
+                           return $('<div>').html(data).text();  // Strip HTML tags
+                         }")
+              )
+            )
+          )
+        ),
+        autoWidth = TRUE,
+        escape = FALSE,
         lengthMenu = list(c(10, 25, 50, -1), c(10, 25, 50, "All"))
-      )
+      ),
+      rownames = FALSE
     )
   })
   
@@ -518,12 +663,52 @@ server <- function(input, output, session) {
       extensions = 'Buttons',
       options = list(
         pageLength = 15,
-        dom = 'Blfrtip',
-        buttons = c('copy', 'csv', 'excel', 'print', 'pdf'),
+        dom = 'Blfrtip',  
+        buttons = list(
+          list(
+            extend = 'copyHtml5',
+            text = 'Copy',
+            filename = 'BinTables',
+            exportOptions = list(
+              format = list(
+                body = JS("function(data, row, column, node) {
+                           return $('<div>').html(data).text();  // Strip HTML tags
+                         }")
+              )
+            )
+          ),
+          list(
+            extend = 'csvHtml5',
+            text = 'CSV',
+            filename = 'BinTables',
+            exportOptions = list(
+              format = list(
+                body = JS("function(data, row, column, node) {
+                           return $('<div>').html(data).text();  // Strip HTML tags
+                         }")
+              )
+            )
+          ),
+          list(
+            extend = 'print',
+            text = 'Print',
+            exportOptions = list(
+              format = list(
+                body = JS("function(data, row, column, node) {
+                           return $('<div>').html(data).text();  // Strip HTML tags
+                         }")
+              )
+            )
+          )
+        ),
+        autoWidth = TRUE,
+        escape = FALSE,
         lengthMenu = list(c(10, 25, 50, -1), c(10, 25, 50, "All"))
-      )
+      ),
+      rownames = FALSE
     )
   })
+  
   
   updateCharts <- function() {
     cat("Updating charts after simulation\n")
@@ -542,7 +727,7 @@ server <- function(input, output, session) {
         output$infoBox1 <- renderInfoBox({
           infoBox(
             "Baseline PIT revenues", 
-            value = paste(round(merged_PIT_BU_SIM$pitax_bu[1], 1), "(in MIL LCU)"), 
+            value = paste(round(merged_PIT_BU_SIM$pitax_bu[1]/1e03, 1), "(in BIL LCU)"), 
             icon = icon("coins"), 
             color = "orange"
           )
@@ -551,7 +736,7 @@ server <- function(input, output, session) {
         output$infoBox2 <- renderInfoBox({
           infoBox(
             "Simulation PIT revenues", 
-            value = paste(round(merged_PIT_BU_SIM$pitax_sim[1], 1), "(in MIL LCU)"), 
+            value = paste(round(merged_PIT_BU_SIM$pitax_sim[1]/1e03, 1), "(in BIL LCU)"), 
             icon = icon("chart-line"), 
             color = "light-blue"
           )

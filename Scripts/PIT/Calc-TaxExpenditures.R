@@ -4,20 +4,27 @@
       # 1.Summarize data and prepare table for GUI with TE -------------------------------------------------------
       # Extract by type of TE
       patterns <- c('year',
-                    #"pit_diplomatic_consular",
                     "pit_tax_agr", 
                     "pit_tax_donation",
                     "pit_tax_CopyrightIncomeArtisticPhotography_l",
-                    "pit_tax_CopyrightIncomeMusicBallet_l", "pit_tax_CopyrightIncomePaintingsSculptural_l",
-                    "pit_tax_CopyrightIncomeTranslationsLectures_l", "pit_tax_CopyrightIncomeSuccessor_l",
-                    #"pit_tax_WorkIncome_l", 
+                    "pit_tax_CopyrightIncomeMusicBallet_l", 
+                    "pit_tax_CopyrightIncomePaintingsSculptural_l",
+                    "pit_tax_CopyrightIncomeTranslationsLectures_l", 
+                    "pit_tax_CopyrightIncomeSuccessor_l",
+                    "pit_tax_WorkIncome_l", 
                     "pit_other_income_l", 
                     "pit_tax_IndustrialPropertyRights_c",
-                    "pit_tax_Lease_c", "pit_LeaseBusiness_c", "pit_SolidWaste_c", 
+                    "pit_tax_Lease_c", 
+                    "pit_LeaseBusiness_c", 
+                    "pit_SolidWaste_c", 
                     #"pit_GamesofChanceSpecific_c",
-                    "pit_GamesofChanceBettingHouse_c", "pit_CapitalGainsSaleShareCapital_c",
-                    "pit_CapitalGainsRealEstateThreeYear_c", "pit_CapitalGainssaleOtherMovableAssets_c",
-                    "pit_CapitalGainsSellsRealEstateFiveYear_c", "pit_Insurance_c", 
+                    # "pit_GamesofChanceBettingHouse_c", 
+                    # "pit_CapitalGainsSaleShareCapital_c",
+                    # "pit_CapitalGainsRealEstateThreeYear_c", 
+                    # "pit_CapitalGainssaleOtherMovableAssets_c",
+                    # "pit_CapitalGainsSellsRealEstateFiveYear_c", 
+                    #"pit_GamesofChanceBettingShop_c", # Ova da se proveri dali da stoi ??
+                    "pit_Insurance_c", 
                     "pitax",
                     #"calc_labor","calc_capital",
                     "pit_w",
@@ -68,8 +75,7 @@
       
       # 2.Tax expenditures by years ------------------------------------------------------------------------
       
-      #'TO-DO DA SE ODZEME pit_diplomatic_consular OD pitax ZA DA BIDAT ISTI PODATOCITE SO GRAFIKONITE '
-      
+
       te_agg<-te_summary_df%>%
         dplyr::select(year, `tax incentive`, `tax expenditure`)%>%
         dplyr:: filter(`tax incentive` %in% c("pitax"))

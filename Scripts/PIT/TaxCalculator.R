@@ -1,38 +1,19 @@
-
-#  OD OVDE
-
 setDTthreads(threads = 8)
 
 get_param_fun <- function(params_dt, param_name) {
   params_dt[Parameters == param_name, Value]
 }
 
-
-
-HighestBaseSSC_Employment<-16
-
-PersonalAllowance<-101256
-
-
-
-average_wage <- 41141
-max_base_wage <- average_wage * HighestBaseSSC_Employment * 12 
-
-SSC_rate <- 0.28
-
-ssc_temp_rate <- 0
-
-
-
-
             base_year <- unique(dt$Year)[1]
-            end_year <- base_year + 4
-            #SimulationYear <- SimulationYear  # Year from slider
+            end_year <- base_year + 5
+            
+            
             simulation_year <- SimulationYear  # Year from slider
             forecast_horizon <- seq(base_year, end_year)
+            scenario_years<-forecast_horizon
             
             # Define the scenarios
-            scenarios <- c("t0", "t1", "t2", "t3", "t4")
+            scenarios <- c("t0", "t1", "t2", "t3", "t4","t5")
             
             # Simulation parameters must be in data.table
             pit_simulation_parameters_raw <- pit_simulation_parameters_raw %>% data.table()
@@ -60,275 +41,228 @@ tax_calc_fun <- function(dt_scn, params_dt) {
                       rate_deductions_CopyrightIncomeSuccessor_l <- get_param_fun(params_dt, "rate_deductions_CopyrightIncomeSuccessor_l")
                       rate_deductions_Lease_c <- get_param_fun(params_dt, "rate_deductions_Lease_c")
                       rate_deductions_LeaseBusiness_c <- get_param_fun(params_dt, "rate_deductions_LeaseBusiness_c")
-                      rate_deductions_CapitalGainsSaleShareCapital_c <- get_param_fun(params_dt, "rate_deductions_CapitalGainsSaleShareCapital_c")
-                      rate_deductions_CapitalGainsRealEstateThreeYear_c <- get_param_fun(params_dt, "rate_deductions_CapitalGainsRealEstateThreeYear_c")
-                      rate_deductions_CapitalGainssaleOtherMovableAssets_c <- get_param_fun(params_dt, "rate_deductions_CapitalGainssaleOtherMovableAssets_c")
                       rate_deductions_SolidWaste_c <- get_param_fun(params_dt, "rate_deductions_SolidWaste_c")
                       rate_deductions_WorkIncome_l <- get_param_fun(params_dt, "rate_deductions_WorkIncome_l")
                       weight_deductions_GamesofChanceSpecific_c <- get_param_fun(params_dt, "weight_deductions_GamesofChanceSpecific_c")
                       weight_deductions_GamesofChanceBettingHouse_c <- get_param_fun(params_dt, "weight_deductions_GamesofChanceBettingHouse_c")
                       weight_deductions_Insurance_c <- get_param_fun(params_dt, "weight_deductions_Insurance_c")
-                      weight_deductions_CapitalGainsSellsRealEstateFiveYear_c <- get_param_fun(params_dt, "weight_deductions_CapitalGainsSellsRealEstateFiveYear_c")
-                      tax_credit_donation <- get_param_fun(params_dt, "tax_credit_donation")
                       weight_personal_allowance_w <- get_param_fun(params_dt, "weight_personal_allowance_w")
                       capital_income_rate_a<- get_param_fun(params_dt, "capital_income_rate_a")
                       capital_income_rate_g<- get_param_fun(params_dt, "capital_income_rate_g")
                       capital_income_rate_c<- get_param_fun(params_dt, "capital_income_rate_c")
-                      
-                      
   
 # I. ESTIMATION TAX LIABILITY FOR INCOME FROM LABOR --------------
   # 1.Calculation of tax base wages ----------------------------------------------------
-        
-       
-        # SSC
-        max_ssc <- max_base_wage * SSC_rate #
-        
-                      
-                      
-      dt_scn[, calc_ssc := fifelse(total_ssc == 0 & g_Wages_l > 0, 
-                                     0, 
-                                     fifelse(g_Wages_l < max_base_wage, 
-                                             SSC_rate * g_Wages_l, 
-                                             max_ssc))]
-  
-        
-  
-       # Tax base
-  
+                      dt_scn[, tax_base_w := {
+                                              personal_allowance_new <- g_total_personal_allowance_l * weight_personal_allowance_w
+                                              tax_base_wages1 <- pmax(g_Wages_l - total_ssc - personal_allowance_new, 0)
+                                              tax_base_wages_diplomatic_consular_l <- g_WagesDiplomaticConsular_l - d_WagesDiplomaticConsular_l
+                                              tax_base_wages1 + tax_base_wages_diplomatic_consular_l
+                                            }]
       
-      
-      # Define the second function
-      dt_scn[, tax_base_w := {
-        personal_allowance_new <- g_total_personal_allowance_l * weight_personal_allowance_w
-        tax_base_wages1 <- pmax(fifelse(g_d_total_tax_reduction_l > 0,
-                                   g_Wages_l - calc_ssc - personal_allowance_new - tax_credit_donation / 0.1,
-                                   0),0)
-        #tax_base_wages1 <- pmax(tax_base_wages1, 0)
-        tax_base_wages2 <- pmax(fifelse(g_d_total_tax_reduction_l == 0,
-                                   g_Wages_l - calc_ssc - personal_allowance_new,
-                                   0),0)
-        #tax_base_wages2 <- pmax(tax_base_wages2, 0)
-        tax_base_wages_diplomatic_consular_l <- g_WagesDiplomaticConsular_l - g_d_WagesDiplomaticConsular_l
-        tax_base_wages1 + tax_base_wages2 + tax_base_wages_diplomatic_consular_l
-      }]
-      
-      
-        
-        # Donations ---------------------------------------------------------------
-        
-        dt_scn[, pit_tax_donation := fifelse(g_d_total_tax_reduction_l > 0, 
-                                             g_Wages_l - calc_ssc - g_total_personal_allowance_l - (g_d_total_tax_reduction_l/0.1) ,
-                                             0)*rate1] 
-        
-        
-        
-
   # 2.Calculation of tax base for income of the basis of sale of own agricultural products ------------------------------------------------------------------------
-    dt_scn[, tax_base_agr := g_AgriculturalProductsOwn_l - (g_AgriculturalProductsOwn_l * rate_ded_income_agr_l)]
-    dt_scn[, pit_tax_agr := tax_base_agr*rate1] 
-        
-        
+                      dt_scn[, tax_base_agr := g_AgriculturalProductsOwn_l - (g_AgriculturalProductsOwn_l * rate_ded_income_agr_l)]
+                      dt_scn[, pit_tax_agr := tax_base_agr*rate1] 
   # 3.Copyright Income Artistic Photography  ------------------------------------------
-   dt_scn[, tax_base_CopyrightIncomeArtisticPhotography_l := 
-                                                           g_CopyrightIncomeArtisticPhotography_l - 
-                                                           (g_CopyrightIncomeArtisticPhotography_l * rate_deductions_CopyrightIncomeArtisticPhotography_l)
-                                                  ]
-    
-    dt_scn[, pit_tax_CopyrightIncomeArtisticPhotography_l := tax_base_CopyrightIncomeArtisticPhotography_l*rate1]
-    
-  # 4.Deductions Copyright Income Music Ballet  -------------------------------------
-  dt_scn[, tax_base_CopyrightIncomeMusicBallet_l := 
-           g_CopyrightIncomeMusicBallet_l - 
-           (g_CopyrightIncomeMusicBallet_l * rate_deductions_CopyrightIncomeMusicBallet_l)
-  ]
-  dt_scn[, pit_tax_CopyrightIncomeMusicBallet_l := tax_base_CopyrightIncomeMusicBallet_l*rate1] 
+                     dt_scn[, tax_base_CopyrightIncomeArtisticPhotography_l := 
+                                                                             g_CopyrightIncomeArtisticPhotography_l - 
+                                                                             (g_CopyrightIncomeArtisticPhotography_l * rate_deductions_CopyrightIncomeArtisticPhotography_l)
+                                                                    ]
+                      
+                      dt_scn[, pit_tax_CopyrightIncomeArtisticPhotography_l := tax_base_CopyrightIncomeArtisticPhotography_l*rate1]
+  # 4.Copyright Income Music Ballet  -------------------------------------
+                      dt_scn[, tax_base_CopyrightIncomeMusicBallet_l := 
+                               g_CopyrightIncomeMusicBallet_l - 
+                               (g_CopyrightIncomeMusicBallet_l * rate_deductions_CopyrightIncomeMusicBallet_l)
+                      ]
+                      dt_scn[, pit_tax_CopyrightIncomeMusicBallet_l := tax_base_CopyrightIncomeMusicBallet_l*rate1] 
+  # 5.Copyright Income Paintings)---------------
+                      dt_scn[, tax_base_CopyrightIncomePaintingsSculptural_l := 
+                               g_CopyrightIncomePaintingsSculptural_l - 
+                               (g_CopyrightIncomePaintingsSculptural_l * rate_deductions_CopyrightIncomePaintingsSculptural_l)
+                      ]
+                      
+                      dt_scn[, pit_tax_CopyrightIncomePaintingsSculptural_l := tax_base_CopyrightIncomePaintingsSculptural_l*rate1]
 
-    
-  # 5.Copyright (Deductions Copyright Income Paintings)---------------
-  dt_scn[, tax_base_CopyrightIncomePaintingsSculptural_l := 
-           g_CopyrightIncomePaintingsSculptural_l - 
-           (g_CopyrightIncomePaintingsSculptural_l * rate_deductions_CopyrightIncomePaintingsSculptural_l)
-  ]
-  
-  dt_scn[, pit_tax_CopyrightIncomePaintingsSculptural_l := tax_base_CopyrightIncomePaintingsSculptural_l*rate1]
-  
-  
-  
   # 6.Copyright Income Translations Lectures ----------------------------------------------------------------------
-  dt_scn[, tax_base_CopyrightIncomeTranslationsLectures_l := 
-           g_CopyrightIncomeTranslationsLectures_l - 
-           (g_CopyrightIncomeTranslationsLectures_l * rate_deductions_CopyrightIncomeTranslationsLectures_l)
-  ]
-
-  dt_scn[, pit_tax_CopyrightIncomeTranslationsLectures_l := tax_base_CopyrightIncomeTranslationsLectures_l*rate1] #NEW
-  
+                      dt_scn[, tax_base_CopyrightIncomeTranslationsLectures_l := 
+                               g_CopyrightIncomeTranslationsLectures_l - 
+                               (g_CopyrightIncomeTranslationsLectures_l * rate_deductions_CopyrightIncomeTranslationsLectures_l)
+                      ]
+                    
+                      dt_scn[, pit_tax_CopyrightIncomeTranslationsLectures_l := tax_base_CopyrightIncomeTranslationsLectures_l*rate1] 
   
   # 7.Successor or holder of the copyrights and related rights ----------------------------------------------------------------------
-  dt_scn[, tax_base_CopyrightIncomeSuccessor_l := 
-           g_CopyrightIncomeSuccessor_l - 
-           (g_CopyrightIncomeSuccessor_l * rate_deductions_CopyrightIncomeSuccessor_l)
-  ]  
-  
-  dt_scn[, pit_tax_CopyrightIncomeSuccessor_l := tax_base_CopyrightIncomeSuccessor_l*rate1] 
-  
+                      dt_scn[, tax_base_CopyrightIncomeSuccessor_l := 
+                               g_CopyrightIncomeSuccessor_l - 
+                               (g_CopyrightIncomeSuccessor_l * rate_deductions_CopyrightIncomeSuccessor_l)
+                      ]  
+                      
+                      dt_scn[, pit_tax_CopyrightIncomeSuccessor_l := tax_base_CopyrightIncomeSuccessor_l*rate1] 
   
   # 8. Work Income ----------------------------------------------------------------------
-  dt_scn[, tax_base_WorkIncome_l := 
-           g_WorkIncome_l - 
-           (g_WorkIncome_l * rate_deductions_WorkIncome_l)
-  ]
-  
-  dt_scn[, pit_tax_WorkIncome_l := tax_base_WorkIncome_l*rate1] #NEW
+                      dt_scn[, tax_base_WorkIncome_l := 
+                               g_WorkIncome_l - 
+                               (g_WorkIncome_l * rate_deductions_WorkIncome_l)
+                      ]
+                      
+                      dt_scn[, pit_tax_WorkIncome_l := tax_base_WorkIncome_l*rate1] 
 
   # 9.Total tax base OTHER INCOME from labor (not include wages )----------------------------------------------------------------------
-
-        dt_scn[, tax_base_other := pmax(
-                                        tax_base_agr + 
-                                          tax_base_CopyrightIncomeArtisticPhotography_l + 
-                                          tax_base_CopyrightIncomeMusicBallet_l + 
-                                          tax_base_CopyrightIncomePaintingsSculptural_l + 
-                                          tax_base_CopyrightIncomeTranslationsLectures_l + 
-                                          tax_base_WorkIncome_l + 
-                                          g_TemporaryContracts_l + 
-                                          g_AgriculturalProducts_l + 
-                                          g_IndependentActivity_l + 
-                                          tax_base_CopyrightIncomeSuccessor_l, 
-                                        0)]
+                      dt_scn[, tax_base_other := pmax(
+                                                      tax_base_agr + 
+                                                      tax_base_CopyrightIncomeArtisticPhotography_l + 
+                                                      tax_base_CopyrightIncomeMusicBallet_l + 
+                                                      tax_base_CopyrightIncomePaintingsSculptural_l + 
+                                                      tax_base_CopyrightIncomeTranslationsLectures_l + 
+                                                      tax_base_WorkIncome_l + 
+                                                      g_TemporaryContracts_l + 
+                                                      g_AgriculturalProducts_l + 
+                                                      g_IndependentActivity_l + 
+                                                      tax_base_CopyrightIncomeSuccessor_l, 
+                                                      0)]
         
+  # 10. Calculation for PIT for income for labor -------------------------------------------
 
-  # 10. Calculation for PIT for wages -------------------------------------------
+                   dt_scn[, tti_w_I := tax_base_w + tax_base_other]
+                           
+                            
+                    dt_scn[, pit_w := 
+                                     (rate1 * pmin(tti_w_I, tbrk1) +
+                                        rate2 * pmin(tbrk2 - tbrk1, pmax(0, tti_w_I - tbrk1)) +
+                                        rate3 * pmin(tbrk3 - tbrk2, pmax(0, tti_w_I - tbrk2)) +
+                                        rate4 * pmax(0, tti_w_I - tbrk3))
+                            ]
+                            
 
-          dt_scn[, tti_w_I := tax_base_w + tax_base_other]
-          
-          dt_scn[, pit_w := 
-                   (rate1 * pmin(tti_w_I, tbrk1) +
-                      rate2 * pmin(tbrk2 - tbrk1, pmax(0, tti_w_I - tbrk1)) +
-                      rate3 * pmin(tbrk3 - tbrk2, pmax(0, tti_w_I - tbrk2)) +
-                      rate4 * pmax(0, tti_w_I - tbrk3))
-          ]
-          
-
+                    
 # II. ESTIMATION TAX LIABILITY FOR INCOME FROM CAPITAL ---------------
-
    # 1. Estimation of tax base for capital incomes without deductions (prescribed cost) --------
-        
-          dt_scn[, tax_base_IndustrialPropertyRights_c := 
-                   g_IndustrialPropertyRights_c- 
-                   (g_IndustrialPropertyRights_c* rate_deductions_IndustrialPropertyRights_c)
-          ]
-          
-          dt_scn[, pit_tax_IndustrialPropertyRights_c := tax_base_IndustrialPropertyRights_c*capital_income_rate_a] #NEW
+                    dt_scn[, tax_base_IndustrialPropertyRights_c := 
+                             g_IndustrialPropertyRights_c- 
+                             (g_IndustrialPropertyRights_c* rate_deductions_IndustrialPropertyRights_c)
+                    ]
+                    
+                    dt_scn[, pit_tax_IndustrialPropertyRights_c := tax_base_IndustrialPropertyRights_c*capital_income_rate_a] 
 
    # 2.Income on the basis of lease -----------------------------------------------
-          dt_scn[, tax_base_Lease_c := 
-                   g_Lease_c- 
-                   (g_Lease_c* rate_deductions_Lease_c)
-          ]
-  
-          dt_scn[, pit_tax_Lease_c := tax_base_Lease_c*capital_income_rate_a] #NEW
+                    dt_scn[, tax_base_Lease_c := 
+                             g_Lease_c- 
+                             (g_Lease_c* rate_deductions_Lease_c)
+                    ]
+            
+                    dt_scn[, pit_tax_Lease_c := tax_base_Lease_c*capital_income_rate_a]
           
           
    # 3. Income on the basis of lease of equipped residential and business premises-------------------------------
-         
-          dt_scn[, tax_base_LeaseBusiness_c := 
-                   g_LeaseBusiness_c- 
-                   (g_LeaseBusiness_c* rate_deductions_LeaseBusiness_c)
-          ]
-  
-          dt_scn[, pit_LeaseBusiness_c := tax_base_LeaseBusiness_c*capital_income_rate_a] #NEW
+                  dt_scn[, tax_base_LeaseBusiness_c := 
+                           g_LeaseBusiness_c- 
+                           (g_LeaseBusiness_c* rate_deductions_LeaseBusiness_c)
+                  ]
+          
+                  dt_scn[, pit_LeaseBusiness_c := tax_base_LeaseBusiness_c*capital_income_rate_a] 
           
           
    # 4. Solid waste -------------------------------------------------------------
-          dt_scn[, tax_base_SolidWaste_c := 
-                   g_SolidWaste_c- 
-                   (g_SolidWaste_c* rate_deductions_SolidWaste_c)
-          ]
-          
-          dt_scn[, pit_SolidWaste_c := tax_base_SolidWaste_c*capital_income_rate_a] #NEW
-          
-          
+                  dt_scn[, tax_base_SolidWaste_c := 
+                           g_SolidWaste_c- 
+                           (g_SolidWaste_c* rate_deductions_SolidWaste_c)
+                  ]
+                  
+                  dt_scn[, pit_SolidWaste_c := tax_base_SolidWaste_c*capital_income_rate_a] 
           
    # 5. Games of Chance Specific----------------------------------- --------
-          dt_scn[, tax_base_GamesofChanceSpecific_c := 
-                   g_GamesofChanceSpecific_c- 
-                   (g_GamesofChanceSpecific_c* weight_deductions_GamesofChanceSpecific_c)
-          ]
-          
-          dt_scn[, pit_GamesofChanceSpecific_c := tax_base_GamesofChanceSpecific_c*capital_income_rate_g] #NEW
+                dt_scn[, tax_base_GamesofChanceSpecific_c := 
+                         g_GamesofChanceSpecific_c- 
+                         (g_GamesofChanceSpecific_c* weight_deductions_GamesofChanceSpecific_c)
+                ]
+                
+                dt_scn[, pit_GamesofChanceSpecific_c := tax_base_GamesofChanceSpecific_c*capital_income_rate_g] 
 
-      # 5.1 Deductions and tax base from income from Games of Chance Specific betting house -------------------------------------------------------------------------
-          dt_scn[, tax_base_GamesofChanceBettingHouse_c := 
-                   g_GamesofChanceBettingHouse_c-(g_d_GamesofChanceBettingHouse_c * weight_deductions_GamesofChanceBettingHouse_c)
+    # 5.1 Betting shop --------------------------------------------------------
+          dt_scn[, tax_base_GamesofChanceBettingShop_c :=
+                   g_GamesofChanceBettingShop_c-(d_GamesofChanceBettingShop_c * 1)
           ]
           
-         
-          
-          dt_scn[, pit_GamesofChanceBettingHouse_c := tax_base_GamesofChanceBettingHouse_c*capital_income_rate_g] #NEW
-          
-  # 6. Capital gains ---------------------------------------
-              dt_scn[, tax_base_CapitalGainsSaleShareCapital_c := 
-                     g_CapitalGainsSaleShareCapital_c- 
-                     (g_CapitalGainsSaleShareCapital_c* rate_deductions_CapitalGainsSaleShareCapital_c)
-            ]
-  
-          
-          dt_scn[, pit_CapitalGainsSaleShareCapital_c := tax_base_CapitalGainsSaleShareCapital_c*capital_income_rate_c] #NEW
-          
-  # 6.1 Capital gains on the basis of sale of real estate after three years-----------------------
-            dt_scn[, tax_base_CapitalGainsRealEstateThreeYear_c := 
-                     g_CapitalGainsRealEstateThreeYear_c- 
-                     (g_CapitalGainsRealEstateThreeYear_c* rate_deductions_CapitalGainsRealEstateThreeYear_c)
-            ]
-          
-          dt_scn[, pit_CapitalGainsRealEstateThreeYear_c := tax_base_CapitalGainsRealEstateThreeYear_c*capital_income_rate_c] #NEW
+          dt_scn[, pit_GamesofChanceBettingShop_c := tax_base_GamesofChanceBettingShop_c*capital_income_rate_g] 
           
           
-  # 6.2 Tax base capital gains from the sale of other movable assets------
-           dt_scn[, tax_base_CapitalGainssaleOtherMovableAssets_c := 
-                     g_CapitalGainssaleOtherMovableAssets_c- 
-                     (g_CapitalGainssaleOtherMovableAssets_c* rate_deductions_CapitalGainssaleOtherMovableAssets_c)
-            ]
-          
-          dt_scn[, pit_CapitalGainssaleOtherMovableAssets_c := tax_base_CapitalGainssaleOtherMovableAssets_c*capital_income_rate_c] #NEW
-          
-  # 6.3 Deductions Capital gains on the basis of sale of real estate after five years
-            dt_scn[, tax_base_CapitalGainsSellsRealEstateFiveYear_c := 
-                     g_CapitalGainsSellsRealEstateFiveYear_c- 
-                     (g_CapitalGainsSellsRealEstateFiveYear_c* weight_deductions_CapitalGainsSellsRealEstateFiveYear_c)
-            ]
-  
-            dt_scn[, pit_CapitalGainsSellsRealEstateFiveYear_c := tax_base_CapitalGainsSellsRealEstateFiveYear_c*capital_income_rate_c] #NEW
+    # 6. Industrial Property Rights Successor ---------------------------------------
+            dt_scn[, tax_base_IndustrialPropertyRightsSuccessor_c := 
+                     g_IndustrialPropertyRightsSuccessor_c]
             
-  # 6.4  Deductions and tax base Income from insurance---------------
+            dt_scn[, pit_IndustrialPropertyRightsSuccessor_c := tax_base_IndustrialPropertyRightsSuccessor_c*capital_income_rate_c] 
+              
+    # 7.  Income from insurance---------------
             dt_scn[, tax_base_Insurance_c := 
-                     g_Insurance_c- 
-                     (g_Insurance_c* weight_deductions_Insurance_c)
+                     g_Insurance_c]
+            
+            dt_scn[, pit_Insurance_c := tax_base_Insurance_c*capital_income_rate_c] 
+            
+            
+    # 8.  Income from Interests---------------
+            dt_scn[, tax_base_Interests_c := 
+                     g_Interests_c]
+            
+            dt_scn[, pit_Interests_c := tax_base_Interests_c*capital_income_rate_c] 
+    # 9.  Other Income  ---------------  
+            
+            dt_scn[, tax_base_OtherIncome_c := 
+                     g_OtherIncome_c]
+            
+            dt_scn[, pit_OtherIncome_c := tax_base_OtherIncome_c*capital_income_rate_c] 
+    # 10.  Sublease ---------------  
+           dt_scn[, tax_base_Sublease_c := 
+                     g_Sublease_c
+                      ]
+            
+            dt_scn[, pit_Sublease_c := tax_base_Sublease_c*capital_income_rate_c] 
+            
+  
+    # 11. CapitalIncome_c -------------------------------------------------------
+            dt_scn[, tax_base_CapitalIncome_c := 
+                     g_CapitalIncome_c
+                   
             ]
             
-            dt_scn[, pit_Insurance_c := tax_base_Insurance_c*capital_income_rate_c] #NEW
-            
-  # 7.Total tax base based on capital income --------------------------------
-        # 7.1 Calculation for total tax base from capital income OTHER THAN games of chance----------------------
-          dt_scn[, tti_c_a := pmax(
-                                    g_IndustrialPropertyRightsSuccessor_c + g_Insurance_c + g_Interests_c + g_OtherIncome_c + g_Sublease_c + 
-                                      tax_base_IndustrialPropertyRights_c + tax_base_Lease_c + tax_base_LeaseBusiness_c + tax_base_SolidWaste_c + 
-                                      tax_base_Insurance_c + g_CapitalIncome_c + tax_base_CapitalGainssaleOtherMovableAssets_c + 
-                                      tax_base_CapitalGainsSellsRealEstateFiveYear_c + tax_base_CapitalGainsRealEstateThreeYear_c + 
-                                      tax_base_CapitalGainsSaleShareCapital_c, 0)
-                                  ]
-            
+            dt_scn[, pit_CapitalIncome_c := tax_base_CapitalIncome_c*capital_income_rate_c] 
+    
+  # 12. Total tax base based on capital income --------------------------------
+        # 12.1 Calculation for total tax base from capital income OTHER THAN games of chance----------------------
+            dt_scn[, tti_c_a := 
+                              g_IndustrialPropertyRightsSuccessor_c + g_Insurance_c + g_Interests_c + g_OtherIncome_c + g_Sublease_c +
+                              tax_base_IndustrialPropertyRights_c + tax_base_Lease_c + tax_base_LeaseBusiness_c + tax_base_SolidWaste_c +
+                              tax_base_Insurance_c + g_CapitalIncome_c]
 
-  # 7.2 Calculation for total tax base from capital income ONLY from games of chance (15%)----------------
-            dt_scn[, tti_c_g := pmax(
-                                            tax_base_GamesofChanceSpecific_c + tax_base_GamesofChanceBettingHouse_c + g_GamesofChanceGeneral_c, 0)
-                                          ]
+       
+        # 12.2 Calculation for total tax base from capital income ONLY from games of chance (15%)----------------
+
+          dt_scn[, tti_c_g :=
+                                    tax_base_GamesofChanceSpecific_c +
+                                      tax_base_GamesofChanceBettingShop_c+
+                                      g_GamesofChanceGeneral_c
+                                  ]
+
+
   
-  # 7.2 Total PIT on the base of income from capital----------------------
-            dt_scn[, pit_c := (tti_c_a * capital_income_rate_a) + (tti_c_g * capital_income_rate_g)]
-            
-            
-  # III. ESTIMATION TOTAL GROSS AND NET INCOME AND PIT --------------------------------       
+        # 12.3 Total PIT on the base of income from capital----------------------
+      
+
+            dt_scn[, pit_c :=pit_tax_IndustrialPropertyRights_c+
+                                          pit_tax_Lease_c+
+                                          pit_LeaseBusiness_c+
+                                          pit_SolidWaste_c+
+                                          pit_GamesofChanceSpecific_c+
+                                          pit_GamesofChanceBettingShop_c+
+                                          pit_IndustrialPropertyRightsSuccessor_c+
+                                          pit_Insurance_c+
+                                          pit_Interests_c+
+                                          pit_OtherIncome_c+
+                                          pit_Sublease_c+
+                                          pit_CapitalIncome_c]
+
+          
+  # III. ESTIMATION TOTAL PIT --------------------------------       
   # Total PIT ------------------------------------------------------
           
             dt_scn[, pitax := pit_w + pit_c]
@@ -336,20 +270,35 @@ tax_calc_fun <- function(dt_scn, params_dt) {
 }    
 # 2. Helper to Retrieve Growth Factors for Each Variable -------------------------------
                 vars_to_grow <- c(
-                                  "g_Wages_l", "g_WagesDiplomaticConsular_l", "g_TemporaryContracts_l", 
-                                  "g_AgriculturalProductsOwn_l", "g_AgriculturalProducts_l", 
+                                  "g_Wages_l",
+                                  "g_WagesDiplomaticConsular_l", 
+                                  "g_TemporaryContracts_l", 
+                                  "g_AgriculturalProductsOwn_l", 
+                                  "g_AgriculturalProducts_l", 
                                   "g_total_personal_allowance_l",
-                                  "g_IndependentActivity_l", "g_CopyrightIncomeArtisticPhotography_l", 
-                                  "g_CopyrightIncomeMusicBallet_l", "g_CopyrightIncomePaintingsSculptural_l", 
-                                  "g_CopyrightIncomeSuccessor_l", "g_CopyrightIncomeTranslationsLectures_l", 
-                                  "g_WorkIncome_l", "g_CapitalGains_c", "g_CapitalIncome_c", 
-                                  "g_IndustrialPropertyRights_c", "g_IndustrialPropertyRightsSuccessor_c", 
-                                  "g_Insurance_c", "g_Interests_c", "g_Lease_c", "g_LeaseBusiness_c", 
-                                  "g_Sublease_c", "g_SolidWaste_c", "g_GamesofChanceSpecific_c", 
-                                  "g_GamesofChanceBettingHouse_c", "g_GamesofChanceGeneral_c", 
-                                  "g_OtherIncome_c", "g_CapitalGainsSellsRealEstateFiveYear_c", 
-                                  "g_CapitalGainsSaleShareCapital_c", "g_CapitalGainsRealEstateThreeYear_c", 
-                                  "g_CapitalGainssaleOtherMovableAssets_c"
+                                  "g_IndependentActivity_l", 
+                                  "g_CopyrightIncomeArtisticPhotography_l", 
+                                  "g_CopyrightIncomeMusicBallet_l", 
+                                  "g_CopyrightIncomePaintingsSculptural_l", 
+                                  "g_CopyrightIncomeSuccessor_l", 
+                                  "g_CopyrightIncomeTranslationsLectures_l", 
+                                  "g_WorkIncome_l", 
+                                  "g_CapitalIncome_c", 
+                                  "g_IndustrialPropertyRights_c", 
+                                  "g_IndustrialPropertyRightsSuccessor_c", 
+                                  "g_Insurance_c", 
+                                  "g_Interests_c", 
+                                  "g_Lease_c", 
+                                  "g_LeaseBusiness_c", 
+                                  "g_Sublease_c", 
+                                  "g_SolidWaste_c", 
+                                  "g_GamesofChanceSpecific_c", 
+                                  "g_GamesofChanceGeneral_c", 
+                                  "g_GamesofChanceBettingShop_c", 
+                                  "g_OtherIncome_c",
+                                  "total_net",
+                                  "g_total_gross",
+                                  "total_ssc"
                               )
                 
                 get_growth_factor_row <- function(scenario) {
@@ -358,7 +307,7 @@ tax_calc_fun <- function(dt_scn, params_dt) {
                   names(out) <- vars_to_grow
                   
                   for (v in vars_to_grow) {
-                    gf_col <- sub("_adjusted", "", v)  # e.g. "g_Wages_l"
+                    gf_col <- sub("_adjusted", "", v)  
                     out[v] <- gf_row[[gf_col]]
                   }
                   return(out)
@@ -378,14 +327,14 @@ tax_calc_fun <- function(dt_scn, params_dt) {
             
             # 2) Multiply each variable by gf_values[v] * weights[[s]]
             for (v in vars_to_grow) {
-              dt_scn_BU[, (v) := get(v) * gf_values[v] * weights[[s]]]
+              dt_scn_BU[, (v) := get(v) * gf_values[v] * weights_pit[[s]]]
             }
             
             # 3) Row-wise tax logic
             tax_calc_fun(dt_scn_BU, pit_simulation_parameters_raw)
             
             # 4) ADD a 'weight' column that references weights[[s]]
-            dt_scn_BU[, weight := weights[[s]]]
+            dt_scn_BU[, weight := weights_pit[[s]]]
             
             # 5) Store in PIT_BU_list
             PIT_BU_list[[s]] <- copy(dt_scn_BU)
@@ -421,14 +370,14 @@ tax_calc_fun <- function(dt_scn, params_dt) {
             
             # Multiply each variable by growth factor * row-weight for scenario s
             for (v in vars_to_grow) {
-              dt_scn_SIM[, (v) := get(v) * gf_values[v] * weights[[s]]]
+              dt_scn_SIM[, (v) := get(v) * gf_values[v] * weights_pit[[s]]]
             }
             
             # Run row-wise calculations with updated parameters
             tax_calc_fun(dt_scn_SIM, pit_simulation_parameters_updated)
             
-            # **Add a 'weight' column** with the row-specific weights for scenario s
-            dt_scn_SIM[, weight := weights[[s]]]
+            # **Add a 'weight' column** with the row-specific weights_pit for scenario s
+            dt_scn_SIM[, weight := weights_pit[[s]]]
             
             # Store final data in PIT_SIM_list
             PIT_SIM_list[[s]] <- copy(dt_scn_SIM)
@@ -477,8 +426,7 @@ tax_calc_fun <- function(dt_scn, params_dt) {
           
       
       # Function to sum the specified columns in the list and store the results in a data frame
-      # summary_SIM <- summarize_PIT_fun(PIT_SIM_list, "_sim")
-      # summary_BU <- summarize_PIT_fun(PIT_BU_list, "_bu")
+
           summary_SIM <- summarize_PIT_fun_dt(PIT_SIM_list, "_sim")
           summary_BU  <- summarize_PIT_fun_dt(PIT_BU_list, "_bu")
           
@@ -494,25 +442,7 @@ tax_calc_fun <- function(dt_scn, params_dt) {
 
 
 # 6. Decile ------------------------------------------------------------------
-
-               
-           # OLD APPROACH
-            # #Apply the functions to each data frame in the PIT_BU_list
-            # for (name in names(PIT_BU_list)) {
-            #   df <- PIT_BU_list[[name]]
-            #   df$decile_group <- cal_weighted_deciles_fun(df$g_total_gross, df$weight)
-            #   df$centile_group <- cal_weighted_centiles_fun(df$g_total_gross, df$weight)
-            #   PIT_BU_list[[name]] <- df
-            # }
-            # 
-            # # Apply the functions to each data frame in the PIT_SIM_list
-            # for (name in names(PIT_SIM_list)) {
-            #   df <- PIT_SIM_list[[name]]
-            #   df$decile_group <- cal_weighted_deciles_fun(df$g_total_gross, df$weight)
-            #   df$centile_group <- cal_weighted_centiles_fun(df$g_total_gross, df$weight)
-            #   PIT_SIM_list[[name]] <- df
-            # }
-      
+       
       
       calc_weighted_groups_in_one_pass <- function(DT, inc_col = "g_total_gross", w_col = "weight") {
         # 1. Keep track of original row order so we can restore it after sorting
@@ -551,7 +481,7 @@ tax_calc_fun <- function(dt_scn, params_dt) {
       }
       
       # -------------------------------------------------------------------
-      # Example usage: loop over your list of data.tables
+      # Loop over lists in data.tables
       # -------------------------------------------------------------------
       for (i in seq_along(PIT_BU_list)) {
         calc_weighted_groups_in_one_pass(
