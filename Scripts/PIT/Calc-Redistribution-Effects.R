@@ -347,38 +347,124 @@
     # TEST 
               
               
-              # Compute the Gini coefficient using the ineq package
-             #library(ineq)
+              # # # 1. Functions for calculation -----------------------------------------------
+              # extract_filtered_re_df_fun <- function(PIT_BU_list, forecast_horizon, simulation_year,
+              #                                        filter_positive = FALSE) {
+              #   # Validate simulation_year: check if it is in the forecast horizon vector.
+              #   if (!simulation_year %in% forecast_horizon) {
+              #     stop("The specified simulation year is not in the forecast horizons.")
+              #   }
+              # 
+              #   # Find the index of the dataset that corresponds to simulation_year.
+              #   index <- which(forecast_horizon == simulation_year)
+              # 
+              #   # Extract the specific data.table for the simulation year.
+              #   PIT_BU_simulation_year_df <- PIT_BU_list[[index]]
+              # 
+              #   # Define the columns to keep.
+              #   columns_to_keep <- c("id_n",
+              #                        "g_total_gross",
+              #                        "total_taxbase",
+              #                        "total_net",
+              #                        "pitax")
+              # 
+              #   # Check for missing columns and issue a warning if any are not found.
+              #   missing_columns <- setdiff(columns_to_keep, colnames(PIT_BU_simulation_year_df))
+              #   if (length(missing_columns) > 0) {
+              #     warning("The following columns are missing in the data frame: ",
+              #             paste(missing_columns, collapse = ", "))
+              #   }
+              # 
+              #   # Filter the data.table to keep only the specified columns.
+              #   PIT_BU_simulation_year_df <- PIT_BU_simulation_year_df[, ..columns_to_keep, with = FALSE]
+              # 
+              #   # Optionally, filter rows where all numeric columns are greater than 0.
+              #   if (filter_positive) {
+              #     # Build a logical condition: for each column that is numeric, check that it is > 0.
+              #     condition <- Reduce("&", lapply(columns_to_keep, function(col) {
+              #       # If the column is numeric, return the boolean vector for > 0,
+              #       # otherwise, return TRUE for all rows.
+              #       if (is.numeric(PIT_BU_simulation_year_df[[col]])) {
+              #         PIT_BU_simulation_year_df[[col]] > 0
+              #       } else {
+              #         rep(TRUE, nrow(PIT_BU_simulation_year_df))
+              #       }
+              #     }))
+              #     PIT_BU_simulation_year_df <- PIT_BU_simulation_year_df[condition]
+              #   }
+              # 
+              #   return(PIT_BU_simulation_year_df)
+              # }
+              # 
+              # 
+              # 
+              # # Extract -----------------------------------------------------------------
+              # 
+              # PIT_BU_simulation_year_df <- extract_filtered_re_df_fun(PIT_BU_list, forecast_horizon, simulation_year)
+              # 
+              # average_tax_rate_bu <- sum(PIT_BU_simulation_year_df$pitax) / sum(PIT_BU_simulation_year_df$g_total_gross)
+              # 
+              # 
+              # PIT_BU_simulation_year_df<-PIT_BU_simulation_year_df%>%
+              #   filter(pitax>0)
+              # 
+              # # 1.BU----------------------------------------------------------------------
+              # # Gini gross income
+              # gini_income_gross <- round(ineq(PIT_BU_simulation_year_df$g_total_gross, type = "Gini", na.rm = TRUE), 4)
+              # 
+              # # Gini net income
+              # gini_income_net <- round(ineq(PIT_BU_simulation_year_df$total_net, type = "Gini", na.rm = TRUE), 4)
+              # 
+              # # Gini tax base
+              # gini_income_gross_tb <- round(ineq(PIT_BU_simulation_year_df$total_taxbase, type = "Gini", na.rm = TRUE), 4)
+              # 
+              # 
+              # # Calculate the Kakwani index
+              # ineq<-calcSConc(PIT_BU_simulation_year_df$pitax, PIT_BU_simulation_year_df$g_total_gross)
+              # kakwani_index_BU <- round(ineq$ineq$index - gini_income_gross, 4)
+              # 
+
+           
               
-              # Bu
-              
-              gini_income <- round(ineq(PIT_BU_simulation_year_df$g_total_gross, type = "Gini", na.rm = TRUE), 4)
-              gx <- data.frame(Gini = gini_income)
-              
-              # Compute the concentration coefficient (using your custom function)
-              ctax <- round(data.frame(calcSConc(PIT_BU_simulation_year_df$pitax, PIT_SIM_simulation_year_df$g_total_gross)[[1]]), 4)
-              # Assuming dt_1 represents the tax concentration coefficient
-              dt_1 <- ctax
-              
-              # Calculate the Kakwani index
-              kakwani_index_BU <- round(dt_1[1, 1] - gx[1, 1], 4)
-             
               
               
+              # # Calculate all indicators and store in a table
+              # indicator_table_sim <- data.frame(
+              #   Indicator = c(
+              #     "Gini coefficient for pre-tax income",
+              #     "Gini coefficient for after-tax income",
+              #     "Concentration coefficient for after-tax income w.r.t. pre-tax income",
+              #     "Concentration coefficient for tax w.r.t. pre-tax income",
+              #     "Atkinson Index for pre-tax income",
+              #     "Atkinson Index for after-tax income",
+              #     "Coefficient of squared variation (I2)",
+              #     "Mean logarithmic deviation (I0)",
+              #     "Kakwani Index"
+              #   ),
+              #   Name = c(
+              #     "gini_gx",
+              #     "gini_gx_t",
+              #     "concentration_cx_t",
+              #     "concentration_ct",
+              #     "atkinson_index_pre_tax_income",
+              #     "atkinson_index_after_tax_income",
+              #     "I2",
+              #     "I0",
+              #     "kakwani_index"
+              #   ),
+              #   Value = c(
+              #     weighted_gini_fun(PIT_SIM_simulation_year_df$g_total_net_l, PIT_SIM_simulation_year_df$g_total_gross, PIT_SIM_simulation_year_df$weight)$gini_gx,
+              #     weighted_gini_fun(PIT_SIM_simulation_year_df$g_total_net_l, PIT_SIM_simulation_year_df$g_total_gross, PIT_SIM_simulation_year_df$weight)$gini_gx_t,
+              #     weighted_concentration_fun(PIT_SIM_simulation_year_df$g_total_net_l, PIT_SIM_simulation_year_df$g_total_gross, PIT_SIM_simulation_year_df$weight)$concentration_cx_t,
+              #     weighted_concentration_fun(PIT_SIM_simulation_year_df$g_total_net_l, PIT_SIM_simulation_year_df$g_total_gross, PIT_SIM_simulation_year_df$weight)$concentration_ct,
+              #     weighted_atkinson_fun(PIT_SIM_simulation_year_df$g_total_gross, PIT_SIM_simulation_year_df$weight, epsilon = 0.5),
+              #     weighted_atkinson_fun(PIT_SIM_simulation_year_df$g_total_net_l, PIT_SIM_simulation_year_df$weight, epsilon = 0.5),
+              #     coefficient_of_squared_variation_fun(PIT_SIM_simulation_year_df$g_total_gross, PIT_SIM_simulation_year_df$weight),
+              #     mean_logarithmic_deviation_fun(PIT_SIM_simulation_year_df$g_total_gross, PIT_SIM_simulation_year_df$weight),
+              #     calculate_kakwani_index_fun(PIT_SIM_simulation_year_df$pitax, PIT_SIM_simulation_year_df$g_total_gross, PIT_SIM_simulation_year_df$weight)
+              #   )
+              # )
               
-              
-              # Simulation
-              
-              gini_income <- round(ineq(PIT_SIM_simulation_year_df$g_total_gross, type = "Gini", na.rm = TRUE), 4)
-              gx <- data.frame(Gini = gini_income)
-              
-              # Compute the concentration coefficient (using your custom function)
-              ctax <- round(data.frame(calcSConc(PIT_SIM_simulation_year_df$pitax, PIT_SIM_simulation_year_df$g_total_gross)[[1]]), 4)
-              # Assuming dt_1 represents the tax concentration coefficient
-              dt_1 <- ctax
-              
-              # Calculate the Kakwani index
-              kakwani_index_SIM <- round(dt_1[1, 1] - gx[1, 1], 4)
               
               
     

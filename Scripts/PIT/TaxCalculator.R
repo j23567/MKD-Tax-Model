@@ -31,7 +31,7 @@ tax_calc_fun <- function(dt_scn, params_dt) {
                       tbrk2 <- get_param_fun(params_dt, "tbrk2")
                       tbrk3 <- get_param_fun(params_dt, "tbrk3")
                       tbrk4 <- get_param_fun(params_dt, "tbrk4")
-                      rate_WagesDiplomaticConsular_l <- get_param_fun(params_dt, "rate_WagesDiplomaticConsular_l")
+                      #rate_WagesDiplomaticConsular_l <- get_param_fun(params_dt, "rate_WagesDiplomaticConsular_l")
                       rate_ded_income_agr_l <- get_param_fun(params_dt, "rate_ded_income_agr_l")
                       rate_deductions_CopyrightIncomePaintingsSculptural_l <- get_param_fun(params_dt, "rate_deductions_CopyrightIncomePaintingsSculptural_l")
                       rate_deductions_CopyrightIncomeArtisticPhotography_l <- get_param_fun(params_dt, "rate_deductions_CopyrightIncomeArtisticPhotography_l")
@@ -42,19 +42,19 @@ tax_calc_fun <- function(dt_scn, params_dt) {
                       rate_deductions_Lease_c <- get_param_fun(params_dt, "rate_deductions_Lease_c")
                       rate_deductions_LeaseBusiness_c <- get_param_fun(params_dt, "rate_deductions_LeaseBusiness_c")
                       rate_deductions_SolidWaste_c <- get_param_fun(params_dt, "rate_deductions_SolidWaste_c")
-                      rate_deductions_WorkIncome_l <- get_param_fun(params_dt, "rate_deductions_WorkIncome_l")
-                      weight_deductions_GamesofChanceSpecific_c <- get_param_fun(params_dt, "weight_deductions_GamesofChanceSpecific_c")
-                      weight_deductions_GamesofChanceBettingHouse_c <- get_param_fun(params_dt, "weight_deductions_GamesofChanceBettingHouse_c")
-                      weight_deductions_Insurance_c <- get_param_fun(params_dt, "weight_deductions_Insurance_c")
-                      weight_personal_allowance_w <- get_param_fun(params_dt, "weight_personal_allowance_w")
-                      capital_income_rate_a<- get_param_fun(params_dt, "capital_income_rate_a")
+                      sf_ded_work_l <- get_param_fun(params_dt, "sf_ded_work_l")
+                      sf_ded_games_s <- get_param_fun(params_dt, "sf_ded_games_s")
+                      sf_ded_betting_h <- get_param_fun(params_dt, "sf_ded_betting_h")
+                      #weight_deductions_Insurance_c <- get_param_fun(params_dt, "weight_deductions_Insurance_c")
+                      sf_per_allowance <- get_param_fun(params_dt, "sf_per_allowance")
+                      #capital_income_rate_a<- get_param_fun(params_dt, "capital_income_rate_a")
                       capital_income_rate_g<- get_param_fun(params_dt, "capital_income_rate_g")
                       capital_income_rate_c<- get_param_fun(params_dt, "capital_income_rate_c")
   
 # I. ESTIMATION TAX LIABILITY FOR INCOME FROM LABOR --------------
   # 1.Calculation of tax base wages ----------------------------------------------------
                       dt_scn[, tax_base_w := {
-                                              personal_allowance_new <- g_total_personal_allowance_l * weight_personal_allowance_w
+                                              personal_allowance_new <- g_total_personal_allowance_l * sf_per_allowance
                                               tax_base_wages1 <- pmax(g_Wages_l - total_ssc - personal_allowance_new, 0)
                                               tax_base_wages_diplomatic_consular_l <- g_WagesDiplomaticConsular_l - d_WagesDiplomaticConsular_l
                                               tax_base_wages1 + tax_base_wages_diplomatic_consular_l
@@ -103,7 +103,7 @@ tax_calc_fun <- function(dt_scn, params_dt) {
   # 8. Work Income ----------------------------------------------------------------------
                       dt_scn[, tax_base_WorkIncome_l := 
                                g_WorkIncome_l - 
-                               (g_WorkIncome_l * rate_deductions_WorkIncome_l)
+                               (d_WorkIncome_l * sf_ded_work_l)
                       ]
                       
                       dt_scn[, pit_tax_WorkIncome_l := tax_base_WorkIncome_l*rate1] 
@@ -143,7 +143,7 @@ tax_calc_fun <- function(dt_scn, params_dt) {
                              (g_IndustrialPropertyRights_c* rate_deductions_IndustrialPropertyRights_c)
                     ]
                     
-                    dt_scn[, pit_tax_IndustrialPropertyRights_c := tax_base_IndustrialPropertyRights_c*capital_income_rate_a] 
+                    dt_scn[, pit_tax_IndustrialPropertyRights_c := tax_base_IndustrialPropertyRights_c*capital_income_rate_c] 
 
    # 2.Income on the basis of lease -----------------------------------------------
                     dt_scn[, tax_base_Lease_c := 
@@ -151,7 +151,7 @@ tax_calc_fun <- function(dt_scn, params_dt) {
                              (g_Lease_c* rate_deductions_Lease_c)
                     ]
             
-                    dt_scn[, pit_tax_Lease_c := tax_base_Lease_c*capital_income_rate_a]
+                    dt_scn[, pit_tax_Lease_c := tax_base_Lease_c*capital_income_rate_c]
           
           
    # 3. Income on the basis of lease of equipped residential and business premises-------------------------------
@@ -160,7 +160,7 @@ tax_calc_fun <- function(dt_scn, params_dt) {
                            (g_LeaseBusiness_c* rate_deductions_LeaseBusiness_c)
                   ]
           
-                  dt_scn[, pit_LeaseBusiness_c := tax_base_LeaseBusiness_c*capital_income_rate_a] 
+                  dt_scn[, pit_LeaseBusiness_c := tax_base_LeaseBusiness_c*capital_income_rate_c] 
           
           
    # 4. Solid waste -------------------------------------------------------------
@@ -169,19 +169,31 @@ tax_calc_fun <- function(dt_scn, params_dt) {
                            (g_SolidWaste_c* rate_deductions_SolidWaste_c)
                   ]
                   
-                  dt_scn[, pit_SolidWaste_c := tax_base_SolidWaste_c*capital_income_rate_a] 
+                  dt_scn[, pit_SolidWaste_c := tax_base_SolidWaste_c*capital_income_rate_c] 
           
-   # 5. Games of Chance Specific----------------------------------- --------
+   # 5. Games of Chance 
+                  
+        # 5.1 General ----------------------------------- --------   
+                  dt_scn[, tax_base_GamesofChanceGeneral_c := 
+                           g_GamesofChanceGeneral_c
+                           
+                  ]
+                  
+                  dt_scn[, pit_GamesofChanceGeneral_c := tax_base_GamesofChanceGeneral_c*capital_income_rate_g] 
+                  
+
+      # 5.2 Specific----------------------------------- --------
                 dt_scn[, tax_base_GamesofChanceSpecific_c := 
                          g_GamesofChanceSpecific_c- 
-                         (g_GamesofChanceSpecific_c* weight_deductions_GamesofChanceSpecific_c)
+                         (d_GamesofChanceSpecific_c* sf_ded_games_s)
                 ]
                 
                 dt_scn[, pit_GamesofChanceSpecific_c := tax_base_GamesofChanceSpecific_c*capital_income_rate_g] 
-
-    # 5.1 Betting shop --------------------------------------------------------
+           
+                
+    # 5.3 Betting shop --------------------------------------------------------
           dt_scn[, tax_base_GamesofChanceBettingShop_c :=
-                   g_GamesofChanceBettingShop_c-(d_GamesofChanceBettingShop_c * 1)
+                   g_GamesofChanceBettingShop_c-(d_GamesofChanceBettingShop_c * sf_ded_betting_h)
           ]
           
           dt_scn[, pit_GamesofChanceBettingShop_c := tax_base_GamesofChanceBettingShop_c*capital_income_rate_g] 
@@ -238,9 +250,10 @@ tax_calc_fun <- function(dt_scn, params_dt) {
         # 12.2 Calculation for total tax base from capital income ONLY from games of chance (15%)----------------
 
           dt_scn[, tti_c_g :=
+                                    tax_base_GamesofChanceGeneral_c+
                                     tax_base_GamesofChanceSpecific_c +
-                                      tax_base_GamesofChanceBettingShop_c+
-                                      g_GamesofChanceGeneral_c
+                                      tax_base_GamesofChanceBettingShop_c
+                                      #g_GamesofChanceGeneral_c
                                   ]
 
 
@@ -249,23 +262,32 @@ tax_calc_fun <- function(dt_scn, params_dt) {
       
 
             dt_scn[, pit_c :=pit_tax_IndustrialPropertyRights_c+
-                                          pit_tax_Lease_c+
-                                          pit_LeaseBusiness_c+
-                                          pit_SolidWaste_c+
-                                          pit_GamesofChanceSpecific_c+
-                                          pit_GamesofChanceBettingShop_c+
-                                          pit_IndustrialPropertyRightsSuccessor_c+
-                                          pit_Insurance_c+
-                                          pit_Interests_c+
-                                          pit_OtherIncome_c+
-                                          pit_Sublease_c+
-                                          pit_CapitalIncome_c]
+                                                              pit_tax_Lease_c+
+                                                              pit_LeaseBusiness_c+
+                                                              pit_SolidWaste_c+
+                                                              pit_GamesofChanceSpecific_c+
+                                                              pit_GamesofChanceBettingShop_c+
+                                                              pit_IndustrialPropertyRightsSuccessor_c+
+                                                              pit_Insurance_c+
+                                                              pit_Interests_c+
+                                                              pit_OtherIncome_c+
+                                                              pit_Sublease_c+
+                                                              pit_CapitalIncome_c]
 
-          
+
+         
+            
+            
   # III. ESTIMATION TOTAL PIT --------------------------------       
   # Total PIT ------------------------------------------------------
           
+            dt_scn[, total_taxbase := tti_c_g + tti_c_a + tti_w_I]
+            
             dt_scn[, pitax := pit_w + pit_c]
+            
+            dt_scn[, total_net := g_total_gross-(total_ssc+g_total_personal_allowance_l+pitax)]
+            
+            
             
 }    
 # 2. Helper to Retrieve Growth Factors for Each Variable -------------------------------
@@ -299,6 +321,7 @@ tax_calc_fun <- function(dt_scn, params_dt) {
                                   "total_net",
                                   "g_total_gross",
                                   "total_ssc"
+                                  
                               )
                 
                 get_growth_factor_row <- function(scenario) {

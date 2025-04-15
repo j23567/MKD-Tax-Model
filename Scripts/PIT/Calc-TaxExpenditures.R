@@ -17,16 +17,10 @@
                     "pit_tax_Lease_c", 
                     "pit_LeaseBusiness_c", 
                     "pit_SolidWaste_c", 
-                    #"pit_GamesofChanceSpecific_c",
-                    # "pit_GamesofChanceBettingHouse_c", 
-                    # "pit_CapitalGainsSaleShareCapital_c",
-                    # "pit_CapitalGainsRealEstateThreeYear_c", 
-                    # "pit_CapitalGainssaleOtherMovableAssets_c",
-                    # "pit_CapitalGainsSellsRealEstateFiveYear_c", 
-                    #"pit_GamesofChanceBettingShop_c", # Ova da se proveri dali da stoi ??
+                    "pit_GamesofChanceSpecific_c",
+                    "pit_GamesofChanceBettingShop_c", 
                     "pit_Insurance_c", 
                     "pitax",
-                    #"calc_labor","calc_capital",
                     "pit_w",
                     "pit_c"
                     )

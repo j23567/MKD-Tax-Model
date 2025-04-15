@@ -890,12 +890,12 @@ server <- function(input, output, session) {
             filter(simulation_year == year) %>%
             select(year, `tax expenditure`)
           
-          selected_value <- round(selected_data$`tax expenditure`[1], 0)  # Convert to billions and round to zero decimal places
+          selected_value <- round(selected_data$`tax expenditure`[1]/1e03, 2)  # Convert to billions and round to zero decimal places
           title_text <- "Total Tax Expenditures (Baseline)"
           
           infoBox(
             title_text,
-            paste0(selected_value, " (in BIL LCU)"),
+            #paste0(selected_value, " (in BIL LCU)"),
             icon = icon("hand-holding-usd"),
             color = "orange"
           )
@@ -905,21 +905,21 @@ server <- function(input, output, session) {
         output$infoBox2 <- renderInfoBox({
           req(input$toggleSimulationRates)  # Ensure the infoBox is only rendered when toggleSimulationRates is TRUE
           
-          cat("Rendering infoBox2\n")
-          te_agg_infoboxes <- left_join(te_agg, MACRO_FISCAL_INDICATORS, by = c("year" = "Year")) %>%
-            dplyr::select(-c(Nominal_VAT_NET))
-          
-          selected_data <- te_agg_infoboxes %>%
-            dplyr::filter(simulation_year == year) %>%
-            dplyr::mutate(TE_GDP = (`tax expenditure` / Nominal_GDP) * 100) %>%
-            dplyr::select(year, TE_GDP)
-          
-          selected_value <- round(selected_data$TE_GDP[1], 2)  # Convert to billions and round to two decimal places
-          title_text <- "Total Tax Expenditures as PCT of GDP (Baseline)"
+          # cat("Rendering infoBox2\n")
+          # te_agg_infoboxes <- left_join(te_agg, MACRO_FISCAL_INDICATORS, by = c("year" = "Year")) %>%
+          #   dplyr::select(-c(Nominal_VAT_NET))
+          # 
+          # selected_data <- te_agg_infoboxes %>%
+          #   dplyr::filter(simulation_year == year) %>%
+          #   dplyr::mutate(TE_GDP = (`tax expenditure` / Nominal_GDP) * 100) %>%
+          #   dplyr::select(year, TE_GDP)
+          # 
+          # selected_value <- round(selected_data$TE_GDP[1], 2)  # Convert to billions and round to two decimal places
+          # title_text <- "Total Tax Expenditures as PCT of GDP (Baseline)"
           
           infoBox(
             title_text,
-            paste0(selected_value, " (%)"),
+           # paste0(selected_value, " (%)"),
             icon = icon("chart-pie"),
             color = "light-blue"
           )

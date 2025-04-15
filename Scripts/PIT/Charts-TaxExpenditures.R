@@ -79,7 +79,7 @@ Tax_Expenditures_Charts <- function(te_agg,te_labor_capital,nace_pit_summary_te,
             unique_years <- unique(nace_pit_summary_te$year)
             
             # Generate a color palette with as many colors as there are unique years
-            colors <- brewer.pal(length(unique_years), "Set1")
+            colors <- brewer.pal(length(unique_years), "Dark2")
             
             # Create a named vector for colors, mapping each year to a color
             custom_colors <- setNames(colors, unique_years)
@@ -117,7 +117,7 @@ Tax_Expenditures_Charts <- function(te_agg,te_labor_capital,nace_pit_summary_te,
           unique_years <- unique(decile_pit_summary$year)
           
           # Generate a color palette with as many colors as there are unique years
-          colors <- brewer.pal(length(unique_years), "Set1")
+          colors <- brewer.pal(length(unique_years), "Dark2")
           
           # Create a named vector for colors, mapping each year to a color
           custom_colors <- setNames(colors, unique_years)
