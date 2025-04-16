@@ -12,6 +12,7 @@ get_param_fun <- function(params_dt, param_name) {
             forecast_horizon <- seq(base_year, end_year)
             scenario_years<-forecast_horizon
             
+            
             # Define the scenarios
             scenarios <- c("t0", "t1", "t2", "t3", "t4","t5")
             
