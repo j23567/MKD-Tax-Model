@@ -2,7 +2,7 @@
 
 # I. Labor-capital -----------------------------------------------------
 
-                  columns_gross_income <- c( #"id_n",
+                  columns_gross_income <- c( 
                                               "g_Wages_l",
                                               "g_WagesDiplomaticConsular_l",
                                               "g_TemporaryContracts_l",
@@ -32,8 +32,8 @@
                                               "decile_group",
                                               "total_gross_l",
                                               "total_gross_c",
-                                              "g_total_gross"
-
+                                              "g_total_gross"#,
+                                              #"gross_int_t_dep"
                                               )
 
                   # Select columns 
@@ -74,7 +74,8 @@
                                       g_OtherIncome_c+
                                       g_GamesofChanceGeneral_c+
                                       g_GamesofChanceBettingShop_c+
-                                      g_GamesofChanceGeneral_c
+                                      g_GamesofChanceGeneral_c#+
+                                      #gross_int_t_dep
                                       )
                                   )
                     
@@ -113,7 +114,7 @@ types_labor_capital_tbl<-selected_gross_desc_tbl%>%
                                                     + g_LeaseBusiness_c
                                                     + g_Sublease_c,
 
-                        capital_other= g_IndustrialPropertyRights_c
+                        capital= g_IndustrialPropertyRights_c
                                           + g_IndustrialPropertyRightsSuccessor_c
                                           + g_Insurance_c
                                           + g_Interests_c
@@ -124,8 +125,7 @@ types_labor_capital_tbl<-selected_gross_desc_tbl%>%
                         )%>%
                         select(decile_group,
                                labor_wages,labor_temporary_contract,labor_agricultural,labor_other,
-                               #capital_dividends_profits,
-                               capital_games_of_chance,capital_property_income,capital_other)
+                               capital_games_of_chance,capital_property_income,capital)
                       
                       
                       
@@ -138,7 +138,7 @@ types_labor_capital_tbl<-selected_gross_desc_tbl%>%
                                                #capital_dividends_profits = sum(capital_dividends_profits, na.rm = TRUE),
                                                capital_games_of_chance = sum(capital_games_of_chance, na.rm = TRUE),
                                                capital_property_income = sum(capital_property_income, na.rm = TRUE),
-                                               capital_other = sum(capital_other, na.rm = TRUE)
+                                               capital = sum(capital, na.rm = TRUE)
                                                
                               )
 
@@ -146,12 +146,11 @@ types_labor_capital_tbl<-selected_gross_desc_tbl%>%
       labor_capital_type <- labor_capital_type %>%
         gather(key = "gross_income", value = "value", labor_wages,labor_temporary_contract,labor_agricultural,labor_other,
                #capital_dividends_profits,
-               capital_games_of_chance,capital_property_income,capital_other)
+               capital_games_of_chance,capital_property_income,capital)
       
       # Reverse the order of the factors for 'gross_income'
       labor_capital_type$gross_income <- factor(labor_capital_type$gross_income, levels = c("labor_wages","labor_temporary_contract","labor_agricultural","labor_other",
-                                                                                            #"capital_dividends_profits",
-                                                                                            "capital_games_of_chance","capital_property_income","capital_other"))
+                                                                                            "capital_games_of_chance","capital_property_income","capital"))
 
 
 # III. Treemap GROSS INCOME --------------------------------------------------------------------
@@ -163,10 +162,9 @@ long_labor_capital_type <- types_labor_capital_tbl %>%
                    labor_temporary_contract = sum(labor_temporary_contract, na.rm = TRUE),
                    labor_agricultural = sum(labor_agricultural, na.rm = TRUE),
                    labor_other = sum(labor_other, na.rm = TRUE),
-                   #capital_dividends_profits = sum(capital_dividends_profits, na.rm = TRUE),
                    capital_games_of_chance = sum(capital_games_of_chance, na.rm = TRUE),
                    capital_property_income = sum(capital_property_income, na.rm = TRUE),
-                   capital_other = sum(capital_other, na.rm = TRUE)
+                   capital = sum(capital, na.rm = TRUE)
                    
   )
 
@@ -200,7 +198,6 @@ selected_gross_nace_tbl <- select(PIT_BU_list$t0, all_of(columns_gross_nace_inco
 
 gross_nace_tbl <- selected_gross_nace_tbl %>%
   dplyr::group_by(nace_section) %>%
-  #dplyr::summarise(g_total_gross = sum(g_total_gross, na.rm = TRUE)
   dplyr::summarise(g_total_gross = sum(g_total_gross, na.rm = TRUE)
   )
 

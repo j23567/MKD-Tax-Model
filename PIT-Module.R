@@ -25,9 +25,7 @@ library(RColorBrewer)
 library(Hmisc)
 library(openxlsx)
 
-# Define custom colors
-#gc(TRUE)
-#options(future.globals.maxSize = 10 * 1024^3)
+
 options(scipen = 999)
 
 
@@ -402,7 +400,7 @@ server <- function(input, output, session) {
       list(
         pit_summary_df = get("pit_summary_df", envir = .GlobalEnv),
         te_summary_df = get("te_summary_df", envir = .GlobalEnv),
-        #re_effects_final = get("re_effects_final", envir = .GlobalEnv),
+        re_effects_final = get("re_effects_final", envir = .GlobalEnv),
         pit_decile_distribution_bu_sim = get("pit_decile_distribution_bu_sim", envir = .GlobalEnv),
         pit_result_bins_sim_sub = get("pit_result_bins_sim_sub", envir = .GlobalEnv)
       )
@@ -747,18 +745,19 @@ server <- function(input, output, session) {
           tagList(
             fluidRow(
               column(6, plotlyOutput("PIT_RevenuesTotal_plt", height = "400px")),
-              column(6, plotlyOutput("PIT_RevenuesLabor_plt", height = "400px"))
+              column(6, plotlyOutput("PIT_RevenuesCombo_plt", height = "400px"))
+              
             ),
             fluidRow(
-              column(6, plotlyOutput("PIT_RevenuesWages_plt", height = "400px")),
+              column(6, plotlyOutput("PIT_RevenuesLabor_plt", height = "400px")),
               column(6, plotlyOutput("PIT_RevenuesCapital_plt", height = "400px"))
             )
           )
         })
         
         output$PIT_RevenuesTotal_plt <- renderPlotly({ charts$PIT_RevenuesTotal_plt })
+        output$PIT_RevenuesCombo_plt <- renderPlotly({ charts$PIT_RevenuesCombo_plt })
         output$PIT_RevenuesLabor_plt <- renderPlotly({ charts$PIT_RevenuesLabor_plt })
-        output$PIT_RevenuesWages_plt <- renderPlotly({ charts$PIT_RevenuesWages_plt })
         output$PIT_RevenuesCapital_plt <- renderPlotly({ charts$PIT_RevenuesCapital_plt })
         
       } else if (chart_type == "Structure_Charts") {
@@ -846,13 +845,13 @@ server <- function(input, output, session) {
                                            pit_result_bins_bu_sub, pit_result_bins_sim_sub, simulation_year)
         
         output$infoBox1 <- renderInfoBox({
-          #infoBox("Test", value=round(100,1), icon = icon("chart-line"), color = "orange")
-          infoBox("Baseline Average Tax Rate", value=round(average_tax_rate_bu*100,2), icon = icon("percent"), color = "orange")
+          #infoBox("Baseline Average Tax Rate", value=round(etr_bu*100,2), icon = icon("percent"), color = "orange")
+          infoBox("Top 1% taxpayers' share of total PIT (Business as usual)", value=round(share_top1_bu*100,2), icon = icon("percent"), color = "orange")
         })
         
         output$infoBox2 <- renderInfoBox({
-          #infoBox("Test", value=round(100,1), icon = icon("chart-pie"), color = "light-blue")
-          infoBox("Simulation Average Tax Rate", value=round(average_tax_rate_sim*100,2), icon = icon("percent"), color = "light-blue")
+          #infoBox("Simulation Average Tax Rate", value=round(etr_SIM*100,2), icon = icon("percent"), color = "light-blue")
+          infoBox("Top 1% taxpayers' share of total PIT (Simulation)", value=round(share_top1_sim*100,2), icon = icon("percent"), color = "light-blue")
         })
         
         output$chartOutputPIT <- renderPlotly({ charts_dist$dist_centile_groups_plt })
@@ -890,8 +889,8 @@ server <- function(input, output, session) {
             filter(simulation_year == year) %>%
             select(year, `tax expenditure`)
           
-          selected_value <- round(selected_data$`tax expenditure`[1]/1e03, 2)  # Convert to billions and round to zero decimal places
-          title_text <- "Total Tax Expenditures (Baseline)"
+         # selected_value <- round(selected_data$`tax expenditure`[1]/1e03, 2)  # Convert to billions and round to zero decimal places
+          title_text <- " "
           
           infoBox(
             title_text,
@@ -902,28 +901,44 @@ server <- function(input, output, session) {
         })
         
         # Conditionally render infoBox2
+        # output$infoBox2 <- renderInfoBox({
+        #   req(input$toggleSimulationRates)  # Ensure the infoBox is only rendered when toggleSimulationRates is TRUE
+        #   
+        #   # cat("Rendering infoBox2\n")
+        #   # te_agg_infoboxes <- left_join(te_agg, MACRO_FISCAL_INDICATORS, by = c("year" = "Year")) %>%
+        #   #   dplyr::select(-c(Nominal_VAT_NET))
+        #   # 
+        #   # selected_data <- te_agg_infoboxes %>%
+        #   #   dplyr::filter(simulation_year == year) %>%
+        #   #   dplyr::mutate(TE_GDP = (`tax expenditure` / Nominal_GDP) * 100) %>%
+        #   #   dplyr::select(year, TE_GDP)
+        #   # 
+        #   # selected_value <- round(selected_data$TE_GDP[1], 2)  # Convert to billions and round to two decimal places
+        #   # title_text <- "Total Tax Expenditures as PCT of GDP (Baseline)"
+        #   
+        #   infoBox(
+        #     title_text,
+        #    # paste0(selected_value, " (%)"),
+        #     icon = icon("chart-pie"),
+        #     color = "light-blue"
+        #   )
+        # })
+        
         output$infoBox2 <- renderInfoBox({
-          req(input$toggleSimulationRates)  # Ensure the infoBox is only rendered when toggleSimulationRates is TRUE
+          req(input$toggleSimulationRates)
           
-          # cat("Rendering infoBox2\n")
-          # te_agg_infoboxes <- left_join(te_agg, MACRO_FISCAL_INDICATORS, by = c("year" = "Year")) %>%
-          #   dplyr::select(-c(Nominal_VAT_NET))
-          # 
-          # selected_data <- te_agg_infoboxes %>%
-          #   dplyr::filter(simulation_year == year) %>%
-          #   dplyr::mutate(TE_GDP = (`tax expenditure` / Nominal_GDP) * 100) %>%
-          #   dplyr::select(year, TE_GDP)
-          # 
-          # selected_value <- round(selected_data$TE_GDP[1], 2)  # Convert to billions and round to two decimal places
-          # title_text <- "Total Tax Expenditures as PCT of GDP (Baseline)"
+          title_text <- " "
+          selected_value <- "N/A"  # if you don't have a computed value
           
           infoBox(
-            title_text,
-           # paste0(selected_value, " (%)"),
+            title = title_text,
+            #value = paste0(selected_value, " (%)"),
             icon = icon("chart-pie"),
             color = "light-blue"
           )
         })
+        
+        
         
         # Conditionally render the charts
         output$chartOutputPIT <- renderPlotly({

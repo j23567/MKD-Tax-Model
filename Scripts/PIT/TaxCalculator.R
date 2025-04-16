@@ -31,7 +31,6 @@ tax_calc_fun <- function(dt_scn, params_dt) {
                       tbrk2 <- get_param_fun(params_dt, "tbrk2")
                       tbrk3 <- get_param_fun(params_dt, "tbrk3")
                       tbrk4 <- get_param_fun(params_dt, "tbrk4")
-                      #rate_WagesDiplomaticConsular_l <- get_param_fun(params_dt, "rate_WagesDiplomaticConsular_l")
                       rate_ded_income_agr_l <- get_param_fun(params_dt, "rate_ded_income_agr_l")
                       rate_deductions_CopyrightIncomePaintingsSculptural_l <- get_param_fun(params_dt, "rate_deductions_CopyrightIncomePaintingsSculptural_l")
                       rate_deductions_CopyrightIncomeArtisticPhotography_l <- get_param_fun(params_dt, "rate_deductions_CopyrightIncomeArtisticPhotography_l")
@@ -45,9 +44,7 @@ tax_calc_fun <- function(dt_scn, params_dt) {
                       sf_ded_work_l <- get_param_fun(params_dt, "sf_ded_work_l")
                       sf_ded_games_s <- get_param_fun(params_dt, "sf_ded_games_s")
                       sf_ded_betting_h <- get_param_fun(params_dt, "sf_ded_betting_h")
-                      #weight_deductions_Insurance_c <- get_param_fun(params_dt, "weight_deductions_Insurance_c")
                       sf_per_allowance <- get_param_fun(params_dt, "sf_per_allowance")
-                      #capital_income_rate_a<- get_param_fun(params_dt, "capital_income_rate_a")
                       capital_income_rate_g<- get_param_fun(params_dt, "capital_income_rate_g")
                       capital_income_rate_c<- get_param_fun(params_dt, "capital_income_rate_c")
   
@@ -239,12 +236,27 @@ tax_calc_fun <- function(dt_scn, params_dt) {
             
             dt_scn[, pit_CapitalIncome_c := tax_base_CapitalIncome_c*capital_income_rate_c] 
     
+
+    # 11a. ---------------------------------------------------------------------
+            # dt_scn[, tax_base_deposit_c := 
+            #                                 gross_int_t_dep
+            #        
+            # ]
+            # 
+            # dt_scn[, pit_Int_t_dep_c := tax_base_deposit_c*capital_income_rate_c] 
+            # 
+            
+            
+            
+            
   # 12. Total tax base based on capital income --------------------------------
         # 12.1 Calculation for total tax base from capital income OTHER THAN games of chance----------------------
             dt_scn[, tti_c_a := 
                               g_IndustrialPropertyRightsSuccessor_c + g_Insurance_c + g_Interests_c + g_OtherIncome_c + g_Sublease_c +
                               tax_base_IndustrialPropertyRights_c + tax_base_Lease_c + tax_base_LeaseBusiness_c + tax_base_SolidWaste_c +
-                              tax_base_Insurance_c + g_CapitalIncome_c]
+                              tax_base_Insurance_c + g_CapitalIncome_c
+                              #+tax_base_deposit_c
+                   ]
 
        
         # 12.2 Calculation for total tax base from capital income ONLY from games of chance (15%)----------------
@@ -253,9 +265,13 @@ tax_calc_fun <- function(dt_scn, params_dt) {
                                     tax_base_GamesofChanceGeneral_c+
                                     tax_base_GamesofChanceSpecific_c +
                                       tax_base_GamesofChanceBettingShop_c
-                                      #g_GamesofChanceGeneral_c
+                                      
                                   ]
 
+            
+          
+
+            
 
   
         # 12.3 Total PIT on the base of income from capital----------------------
@@ -272,7 +288,9 @@ tax_calc_fun <- function(dt_scn, params_dt) {
                                                               pit_Interests_c+
                                                               pit_OtherIncome_c+
                                                               pit_Sublease_c+
-                                                              pit_CapitalIncome_c]
+                                                              pit_CapitalIncome_c#+
+                                                              #pit_Int_t_dep_c
+                   ]
 
 
          
@@ -320,8 +338,8 @@ tax_calc_fun <- function(dt_scn, params_dt) {
                                   "g_OtherIncome_c",
                                   "total_net",
                                   "g_total_gross",
-                                  "total_ssc"
-                                  
+                                  "total_ssc"#,
+                                  #"gross_int_t_dep"
                               )
                 
                 get_growth_factor_row <- function(scenario) {
