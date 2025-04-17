@@ -238,13 +238,13 @@ tax_calc_fun <- function(dt_scn, params_dt) {
     
 
     # 11a. ---------------------------------------------------------------------
-            # dt_scn[, tax_base_deposit_c := 
+            # dt_scn[, tax_base_deposit_c :=
             #                                 gross_int_t_dep
-            #        
+            # 
             # ]
             # 
-            # dt_scn[, pit_Int_t_dep_c := tax_base_deposit_c*capital_income_rate_c] 
-            # 
+            # dt_scn[, pit_Int_t_dep_c := tax_base_deposit_c*capital_income_rate_c]
+
             
             
             
@@ -288,7 +288,7 @@ tax_calc_fun <- function(dt_scn, params_dt) {
                                                               pit_Interests_c+
                                                               pit_OtherIncome_c+
                                                               pit_Sublease_c+
-                                                              pit_CapitalIncome_c#+
+                                                              pit_CapitalIncome_c # +
                                                               #pit_Int_t_dep_c
                    ]
 
@@ -338,7 +338,7 @@ tax_calc_fun <- function(dt_scn, params_dt) {
                                   "g_OtherIncome_c",
                                   "total_net",
                                   "g_total_gross",
-                                  "total_ssc"#,
+                                  "total_ssc" #,
                                   #"gross_int_t_dep"
                               )
                 

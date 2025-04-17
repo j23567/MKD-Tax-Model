@@ -247,9 +247,11 @@ extract_filtered_re_df_fun <- function(PIT_BU_list, forecast_horizon, simulation
         dplyr::mutate(`Percentage Difference (%)` = round((`Simulation` - `Business as usual`) / `Business as usual` * 100, 1))
       
       
+
+      rm(PIT_BU_list,PIT_SIM_list,extracted_dist_tables_bu,extracted_dist_tables_sim,extracted_dist_tables_bu,
+         extracted_tables_bu,extracted_tables_sim
+         )
       
-      
-      
-      
+      gc(TRUE)
       
       
