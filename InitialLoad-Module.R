@@ -6,48 +6,48 @@
 'Step 1. Set your local path to the  model'
 rm(list = ls())
 
-path1<-"C:/Users/wb591157/OneDrive - WBG/Documents/Models/MKD-Tax-Model"
+path1<-" " ##<---PATH
 
 
 # I.INSTALLING REQUIRED PACKAGES AND SETTING PATH  -------------------------------------------------
           '1.Library installation'
 
-        #           list.of.packages <- c(
-        #                                   "shiny",
-        #                                   "shinydashboard",
-        #                                   "shinyjs",
-        #                                   "shinyWidgets",
-        #                                   "DT",
-        #                                   "ineq",
-        #                                   "data.table",
-        #                                   "readxl",
-        #                                   "fontawesome",
-        #                                   "flexdashboard",
-        #                                   "tidyverse",
-        #                                   "plyr",
-        #                                   "shinycssloaders",
-        #                                   "future",
-        #                                   "promises",
-        #                                   "plotly",
-        #                                   "stringr",
-        #                                   "reshape2",
-        #                                   "base64enc",
-        #                                   "parallel",
-        #                                   "purrr",
-        #                                   "tidyr",
-        #                                   "RColorBrewer",
-        #                                   "Hmisc",
-        #                                   "openxlsx"
-        #                                 )
-        # 
-        # 
-        #   new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
-        #   if(length(new.packages)) install.packages(new.packages)
-        # 
-        # 
-        # 
-        # install.packages("https://cran.r-project.org/src/contrib/Archive/IC2/IC2_1.0-1.tar.gz",
-        #                     repos = NULL, type = "source", method = "wininet")
+                  list.of.packages <- c(
+                                          "shiny",
+                                          "shinydashboard",
+                                          "shinyjs",
+                                          "shinyWidgets",
+                                          "DT",
+                                          "ineq",
+                                          "data.table",
+                                          "readxl",
+                                          "fontawesome",
+                                          "flexdashboard",
+                                          "tidyverse",
+                                          "plyr",
+                                          "shinycssloaders",
+                                          "future",
+                                          "promises",
+                                          "plotly",
+                                          "stringr",
+                                          "reshape2",
+                                          "base64enc",
+                                          "parallel",
+                                          "purrr",
+                                          "tidyr",
+                                          "RColorBrewer",
+                                          "Hmisc",
+                                          "openxlsx"
+                                        )
+
+
+          new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+          if(length(new.packages)) install.packages(new.packages)
+
+
+
+        install.packages("https://cran.r-project.org/src/contrib/Archive/IC2/IC2_1.0-1.tar.gz",
+                            repos = NULL, type = "source", method = "wininet")
 
 
           

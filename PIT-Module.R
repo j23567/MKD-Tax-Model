@@ -213,7 +213,7 @@ server <- function(input, output, session) {
   })
   
   shinyjs::disable("default_Year")
-  #shinyjs::disable("default_Year")
+  
   
   # Reactive data frame to store Excel data
   excelData <- reactiveVal(NULL)
@@ -722,19 +722,31 @@ server <- function(input, output, session) {
         source("Scripts/PIT/Charts-PIT_Revenues.R")
         charts <- Revenue_Charts(merged_PIT_BU_SIM, range(forecast_horizon))
 
+
         output$infoBox1 <- renderInfoBox({
+          infobox_pitax_bu <- merged_PIT_BU_SIM %>%
+            dplyr::select(year, pitax_bu) %>%
+            dplyr::filter(year == SimulationYear) %>%
+            dplyr::select(-c(year))
+          
           infoBox(
-            "Baseline PIT revenues", 
-            value = paste(round(merged_PIT_BU_SIM$pitax_bu[1]/1e03, 1), "(in BIL LCU)"), 
+            title = paste("(Business as usual)", SimulationYear),
+            value = paste(round(infobox_pitax_bu$pitax_bu[1] / 1e03, 1), "(in BIL LCU)"), 
             icon = icon("coins"), 
             color = "orange"
           )
         })
         
+        
         output$infoBox2 <- renderInfoBox({
+          infobox_pitax_sim <- merged_PIT_BU_SIM %>%
+            dplyr::select(year, pitax_sim) %>%
+            dplyr::filter(year == SimulationYear) %>%
+            dplyr::select(-c(year))
+          
           infoBox(
-            "Simulation PIT revenues", 
-            value = paste(round(merged_PIT_BU_SIM$pitax_sim[1]/1e03, 1), "(in BIL LCU)"), 
+            title = paste("Simulation PIT revenues", SimulationYear),
+            value = paste(round(infobox_pitax_sim$pitax_sim[1] / 1e03, 1), "(in BIL LCPU)"), 
             icon = icon("chart-line"), 
             color = "light-blue"
           )
@@ -763,14 +775,13 @@ server <- function(input, output, session) {
       } else if (chart_type == "Structure_Charts") {
         cat("Preparing Structure_Charts charts\n")
         source("Scripts/PIT/Charts-StructureGrossIncome.R")
-        #source(paste0(path1, "/Scripts/PIT/Charts-StructureGrossIncome.R"))
         Charts_structure <- Structure_GrossIncome_Charts(long_labor_capital, labor_capital_type, long_labor_capital_type, gross_nace_tbl)
 
         
         output$infoBox1 <- renderInfoBox({
           cat("Rendering infoBox1\n")
           
-          # Assuming the data extraction is already done and stored in a variable
+        
           selected_data <- long_labor_capital_type %>%
             filter(value == max(value)) %>%
             select(income_type, value)
@@ -795,7 +806,7 @@ server <- function(input, output, session) {
         output$infoBox2 <- renderInfoBox({
           cat("Rendering infoBox1\n")
           
-          # Assuming the data extraction is already done and stored in a variable
+          
           selected_data <- gross_nace_tbl %>%
             filter(g_total_gross  == max(g_total_gross )) %>%
             select(nace_section, g_total_gross )
@@ -900,29 +911,7 @@ server <- function(input, output, session) {
           )
         })
         
-        # Conditionally render infoBox2
-        # output$infoBox2 <- renderInfoBox({
-        #   req(input$toggleSimulationRates)  # Ensure the infoBox is only rendered when toggleSimulationRates is TRUE
-        #   
-        #   # cat("Rendering infoBox2\n")
-        #   # te_agg_infoboxes <- left_join(te_agg, MACRO_FISCAL_INDICATORS, by = c("year" = "Year")) %>%
-        #   #   dplyr::select(-c(Nominal_VAT_NET))
-        #   # 
-        #   # selected_data <- te_agg_infoboxes %>%
-        #   #   dplyr::filter(simulation_year == year) %>%
-        #   #   dplyr::mutate(TE_GDP = (`tax expenditure` / Nominal_GDP) * 100) %>%
-        #   #   dplyr::select(year, TE_GDP)
-        #   # 
-        #   # selected_value <- round(selected_data$TE_GDP[1], 2)  # Convert to billions and round to two decimal places
-        #   # title_text <- "Total Tax Expenditures as PCT of GDP (Baseline)"
-        #   
-        #   infoBox(
-        #     title_text,
-        #    # paste0(selected_value, " (%)"),
-        #     icon = icon("chart-pie"),
-        #     color = "light-blue"
-        #   )
-        # })
+       
         
         output$infoBox2 <- renderInfoBox({
           req(input$toggleSimulationRates)
