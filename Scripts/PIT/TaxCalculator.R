@@ -1,3 +1,5 @@
+#day 3 training
+
 setDTthreads(threads = 8)
 
 get_param_fun <- function(params_dt, param_name) {
