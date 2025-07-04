@@ -32,7 +32,7 @@
                                               "decile_group",
                                               "total_gross_l",
                                               "total_gross_c",
-                                              "g_total_gross"#,
+                                              "g_total_gross"
                                               #"gross_int_t_dep"
                                               )
 

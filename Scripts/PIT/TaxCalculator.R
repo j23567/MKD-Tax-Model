@@ -340,7 +340,7 @@ tax_calc_fun <- function(dt_scn, params_dt) {
                                   "g_OtherIncome_c",
                                   "total_net",
                                   "g_total_gross",
-                                  "total_ssc" #,
+                                  "total_ssc" 
                                   #"gross_int_t_dep"
                               )
                 

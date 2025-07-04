@@ -392,11 +392,19 @@ server <- function(input, output, session) {
     ))
     
     future({
-      source("Scripts/PIT/TaxCalculator.R")
-      source("Scripts/PIT/Calc-Structure.R")
-      source("Scripts/PIT/Calc-TaxExpenditures.R")
-      source("Scripts/PIT/Calc-Distribution-Effects.R")
-      source("Scripts/PIT/Calc-Redistribution-Effects.R")
+      # source("Scripts/PIT/TaxCalculator.R")
+      # source("Scripts/PIT/Calc-Structure.R")
+      # source("Scripts/PIT/Calc-TaxExpenditures.R")
+      # source("Scripts/PIT/Calc-Distribution-Effects.R")
+      # source("Scripts/PIT/Calc-Redistribution-Effects.R")
+      
+      source(paste0(path1, "/Scripts/PIT/TaxCalculator.R"))
+      source(paste0(path1, "/Scripts/PIT/Calc-Structure.R"))
+      source(paste0(path1, "/Scripts/PIT/Calc-TaxExpenditures.R"))
+      source(paste0(path1, "/Scripts/PIT/Calc-Distribution-Effects.R"))
+      source(paste0(path1, "/Scripts/PIT/Calc-Distribution-Effects.R"))
+      source(paste0(path1, "/Scripts/PIT/Calc-Redistribution-Effects.R"))
+      
       list(
         pit_summary_df = get("pit_summary_df", envir = .GlobalEnv),
         te_summary_df = get("te_summary_df", envir = .GlobalEnv),
@@ -719,7 +727,9 @@ server <- function(input, output, session) {
       
       if (chart_type == "Revenue_Charts") {
         cat("Preparing Revenue_Charts charts\n")
-        source("Scripts/PIT/Charts-PIT_Revenues.R")
+        #source("Scripts/PIT/Charts-PIT_Revenues.R")
+        source(paste0(path1, "/Scripts/PIT/Charts-PIT_Revenues.R"))
+        
         charts <- Revenue_Charts(merged_PIT_BU_SIM, range(forecast_horizon))
 
 
@@ -774,7 +784,9 @@ server <- function(input, output, session) {
         
       } else if (chart_type == "Structure_Charts") {
         cat("Preparing Structure_Charts charts\n")
-        source("Scripts/PIT/Charts-StructureGrossIncome.R")
+        #source("Scripts/PIT/Charts-StructureGrossIncome.R")
+        source(paste0(path1, "/Scripts/PIT/Charts-StructureGrossIncome.R"))
+        
         Charts_structure <- Structure_GrossIncome_Charts(long_labor_capital, labor_capital_type, long_labor_capital_type, gross_nace_tbl)
 
         
@@ -850,8 +862,8 @@ server <- function(input, output, session) {
         
       } else if (chart_type == "Distribution_Charts") {
         cat("Preparing Distribution_Charts charts\n")
-        source("Scripts/PIT/Charts-Distribution.R")
-        #source(paste0(path1, "/Scripts/PIT/Charts-Distribution.R"))
+        #source("Scripts/PIT/Charts-Distribution.R")
+        source(paste0(path1, "/Scripts/PIT/Charts-Distribution.R"))
         charts_dist <- Distribution_Charts(pit_centile_distribution_bu_sim, pit_decile_distribution_bu_sim_raw,
                                            pit_result_bins_bu_sub, pit_result_bins_sim_sub, simulation_year)
         
@@ -887,8 +899,8 @@ server <- function(input, output, session) {
         
       } else if (chart_type == "Tax_Expenditures_Charts") {
         cat("Preparing Tax_Expenditures_Charts charts\n")
-        source("Scripts/PIT/Charts-TaxExpenditures.R")
-        #source(paste0(path1, "/Scripts/PIT/Charts-TaxExpenditures.R"))
+        #source("Scripts/PIT/Charts-TaxExpenditures.R")
+        source(paste0(path1, "/Scripts/PIT/Charts-TaxExpenditures.R"))
         charts_te <- Tax_Expenditures_Charts(te_agg, te_labor_capital, nace_pit_summary_te, decile_pit_summary, range(forecast_horizon))
         
         # Conditionally render infoBox1
